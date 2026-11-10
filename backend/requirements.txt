@@ -1,0 +1,13 @@
+# backend/requirements.txt
+# High-performance async web framework for our stadium referee server
+fastapi>=0.110.0
+# Lightning-fast ASGI web server implementation to run FastAPI
+uvicorn>=0.28.0
+# Data validation and contract enforcement using Python type annotations
+pydantic>=2.6.0
+# Loads stadium environment variables from the .env configuration file
+python-dotenv>=1.0.0
+# Standard automated testing framework for testing our arena rules
+pytest>=8.0.0
+# Next-generation HTTP client for async requests and FastAPI test client
+httpx>=0.27.0
