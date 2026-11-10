@@ -24,6 +24,10 @@
   padding: 0;
 }
 
+html {
+  overflow-y: scroll; /* Preserves scrollbar gutter so screen width is strictly uniform and never shifts */
+}
+
 body {
   background-color: var(--color-bg-deep);
   color: var(--color-text-primary);
@@ -35,6 +39,12 @@ body {
   overflow-x: hidden;
 }
 
+#root {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
 .pokeai-root-container {
   width: 100%;
   display: flex;
@@ -43,24 +53,27 @@ body {
   padding: 24px 16px;
 }
 
-/* Adjusted Viewport Width to 960px as requested */
+/* Locked Uniform Viewport Width across ALL screens (1200px on desktop, fluid 100% on tablet/mobile) */
 .pokeai-viewport {
-  width: 100%;
-  max-width: 960px;
+  width: 1200px;
+  max-width: 100%;
+  flex-shrink: 0;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-/* Classic Handheld Chassis - Crisp Daylight Casing */
+/* Classic Handheld Chassis - Crisp Daylight Casing with Uniform Height & Fixed Framing */
 .gba-screen-chassis {
   width: 100%;
+  min-height: 620px;
   background: var(--color-chassis-bg);
   border: 4px solid var(--color-chassis-border);
   border-radius: 16px;
   box-shadow: 0 16px 36px rgba(15, 23, 42, 0.12), 0 2px 6px rgba(15, 23, 42, 0.08);
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   overflow: hidden;
   position: relative;
 }
@@ -70,6 +83,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 16px;
   background-color: #f8fafc;
   padding: 12px 24px;
   border-bottom: 2px solid var(--color-card-border);
@@ -81,7 +95,40 @@ body {
 .stadium-indicator {
   color: var(--color-accent-green);
   font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.stadium-indicator-dot {
   animation: pulse-dot 1.8s infinite;
+}
+
+/* Highlighted Trainer Name Badge in Header */
+.trainer-name-highlight-badge {
+  background-color: #eff6ff;
+  color: var(--color-accent-blue);
+  border: 2px solid #93c5fd;
+  box-shadow: 0 2px 0 #bfdbfe;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-family: var(--font-pixel);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  animation: none;
+}
+
+/* Inline Highlighted Trainer Name in Dialogue Speech */
+.dialogue-trainer-highlight {
+  color: var(--color-accent-blue);
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  padding: 1px 8px;
+  border-radius: 5px;
+  font-weight: 700;
 }
 
 .stadium-env-tag {
@@ -414,5 +461,780 @@ body {
   }
   50% {
     opacity: 0.3;
+  }
+}
+
+/* --- Lesson 1: Reusable JRPG Visual Novel Dialogue Box with Character Overlay --- */
+.dialogue-box-wrapper {
+  position: relative;
+  width: 100%;
+  margin-top: 20px;
+}
+
+/* Character sprite positioned dynamically on right or left (Elevated UPWARD for prominent visibility) */
+.dialogue-character-overlay {
+  position: absolute;
+  bottom: 60px; /* Adjusted UPWARD by 60px so more of the character torso, hands, and outfit are visible */
+  z-index: 1; /* Layered strictly BEHIND the dialogue box chassis */
+  pointer-events: none;
+  display: flex;
+  align-items: flex-end;
+}
+
+.dialogue-character-overlay.overlay-right {
+  right: 48px;
+}
+
+.dialogue-character-overlay.overlay-left {
+  left: 48px;
+}
+
+.dialogue-character-sprite {
+  height: 420px;
+  object-fit: contain;
+  filter: drop-shadow(0 14px 28px rgba(15, 23, 42, 0.22));
+  user-select: none;
+  animation: character-float-gentle 4s ease-in-out infinite alternate;
+}
+
+@keyframes character-float-gentle {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-6px);
+  }
+}
+
+/* Primary Dialogue Frame (Enhanced semi-translucent frosted glass to clearly see character behind) */
+.dialogue-frame-chassis {
+  position: relative;
+  z-index: 10; /* In FRONT of the character sprite */
+  background: rgba(255, 255, 255, 0.65); /* Additional translucency to clearly see character silhouette behind */
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 4px solid #1e293b;
+  border-radius: 14px;
+  box-shadow: 0 6px 0 #94a3b8;
+  padding: 22px 28px;
+  min-height: 115px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.2s ease;
+  user-select: none;
+}
+
+.dialogue-frame-chassis:hover {
+  background: rgba(255, 255, 255, 0.78);
+  transform: translateY(-1px);
+  box-shadow: 0 7px 0 #94a3b8;
+}
+
+/* Dialogue speech content spans full width unobstructed */
+.dialogue-speech-content {
+  width: 100%;
+}
+
+.dialogue-box-wrapper.placement-right .dialogue-speech-content,
+.dialogue-box-wrapper.placement-left .dialogue-speech-content,
+.dialogue-box-wrapper.placement-none .dialogue-speech-content {
+  padding-right: 0;
+  padding-left: 0;
+}
+
+/* Floating Tactile Nameplate Badge */
+.dialogue-nameplate-badge {
+  position: absolute;
+  top: -16px;
+  left: 28px;
+  background-color: #1e293b;
+  color: #ffffff;
+  padding: 5px 16px;
+  border-radius: 8px;
+  font-family: var(--font-pixel);
+  font-size: 0.68rem;
+  letter-spacing: 1px;
+  box-shadow: 0 3px 0 #0f172a;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 15;
+}
+
+/* Invert nameplate position when character is on the left */
+.dialogue-box-wrapper.placement-left .dialogue-nameplate-badge {
+  left: auto;
+  right: 28px;
+}
+
+.dialogue-speech-text {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  line-height: 1.6;
+}
+
+.typewriter-active-cursor {
+  display: inline-block;
+  margin-left: 3px;
+  color: var(--color-accent-blue);
+  font-family: monospace;
+  font-weight: 700;
+  animation: typewriter-cursor-blink 0.6s infinite alternate;
+}
+
+@keyframes typewriter-cursor-blink {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.15;
+  }
+}
+
+.dialogue-action-hint {
+  align-self: flex-end;
+  font-family: var(--font-pixel);
+  font-size: 0.68rem;
+  color: var(--color-accent-blue);
+  margin-top: 8px;
+  text-align: right;
+}
+
+/* --- Step 1: Open Visual Novel Welcome Stage (50% / 50% Split so text never collides with Guide) --- */
+.visual-novel-welcome-stage {
+  min-height: 340px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 40px 48px;
+}
+
+.welcome-hero-banner {
+  flex: 0 0 54%;
+  max-width: 540px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  position: relative;
+  z-index: 5;
+}
+
+.welcome-tag-pill {
+  display: inline-block;
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: var(--color-accent-blue);
+  font-family: var(--font-pixel);
+  font-size: 0.62rem;
+  padding: 6px 14px;
+  border-radius: 999px;
+  letter-spacing: 1px;
+  margin-bottom: 14px;
+}
+
+.welcome-hero-title {
+  font-family: var(--font-pixel);
+  font-size: 2rem;
+  color: #0f172a;
+  line-height: 1.4;
+  margin-bottom: 14px;
+}
+
+.welcome-hero-subtitle {
+  font-size: 1.15rem;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.retro-key {
+  display: inline-block;
+  background-color: #f1f5f9;
+  border: 2px solid #cbd5e1;
+  border-radius: 6px;
+  box-shadow: 0 2px 0 #94a3b8;
+  padding: 2px 8px;
+  font-family: var(--font-pixel);
+  font-size: 0.75rem;
+  color: #1e293b;
+}
+
+/* --- Step 2: 50% / 50% Split Trainer Registration Layout --- */
+.name-input-split-stage {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  min-height: 340px;
+  padding: 30px 40px;
+  gap: 32px;
+}
+
+.name-input-left-column {
+  flex: 0 0 50%;
+  max-width: 50%;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.name-input-card {
+  width: 100%;
+  max-width: 520px;
+  background: var(--color-card-bg);
+  border: 2px solid var(--color-card-border);
+  border-radius: 14px;
+  padding: 26px 28px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.name-input-card .title-badge-top {
+  display: inline-flex;
+  width: auto;
+  align-self: flex-start;
+  margin-bottom: 8px;
+}
+
+.trainer-input-helper-row {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  color: var(--color-text-secondary);
+}
+
+.trainer-char-count {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.trainer-enter-prompt {
+  font-family: var(--font-pixel);
+  font-size: 0.62rem;
+  color: var(--color-accent-blue);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.name-input-right-column {
+  flex: 0 0 50%;
+  max-width: 50%;
+  min-height: 280px;
+  /* Open space allowing Shaneil's 420px sprite rising from the dialogue box to shine */
+}
+
+/* --- Trainer Name Input Styling --- */
+.trainer-name-text-input {
+  width: 100%;
+  padding: 12px 16px;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+  background-color: #ffffff;
+  border: 3px solid #1e293b;
+  border-radius: 8px;
+  outline: none;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.trainer-name-text-input:focus {
+  border-color: var(--color-accent-blue);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+/* --- Starter Selection Split Layout (Cards on Left, Guide on Right) --- */
+.starter-selection-split-stage {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 16px 36px 4px 36px;
+  min-height: 330px;
+  gap: 24px;
+}
+
+.starter-cards-column {
+  flex: 0 0 68%;
+  max-width: 740px;
+  width: 68%;
+}
+
+.starter-guide-spacer-column {
+  flex: 0 0 32%;
+  max-width: 32%;
+  min-height: 280px;
+  /* Dedicated open stage where Guide Athena stands without overlapping cards */
+}
+
+.starters-card-grid-compact {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  width: 100%;
+}
+
+/* --- Starter Selection Cards Grid --- */
+.starters-card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  width: 100%;
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.starter-choice-card {
+  background-color: var(--color-card-bg);
+  border: 3px solid var(--color-card-border);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  box-shadow: 0 3px 0 #cbd5e1;
+}
+
+.starter-choice-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 0 #cbd5e1;
+  border-color: var(--color-accent-blue);
+}
+
+.starter-choice-card.starter-card-selected {
+  border-color: var(--color-accent-blue);
+  background-color: #eff6ff;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.4), 0 8px 18px rgba(37, 99, 235, 0.2);
+  transform: translateY(-4px);
+}
+
+.starter-selected-pill {
+  margin-top: 10px;
+  background-color: var(--color-accent-blue);
+  color: #ffffff;
+  font-family: var(--font-pixel);
+  font-size: 0.58rem;
+  padding: 5px 10px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+  text-align: center;
+  box-shadow: 0 2px 0 #1d4ed8;
+  animation: pulse-dot 2s infinite ease-in-out;
+}
+
+.starter-card-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-pixel);
+  font-size: 0.7rem;
+  margin-bottom: 8px;
+}
+
+.starter-card-name {
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.starter-pokedex-number {
+  color: var(--color-text-secondary);
+}
+
+.starter-type-badges {
+  display: flex;
+  gap: 6px;
+  margin: 6px 0;
+}
+
+.type-badge {
+  font-family: var(--font-pixel);
+  font-size: 0.55rem;
+  padding: 3px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  color: #ffffff;
+}
+
+.type-grass { background-color: #16a34a; }
+.type-poison { background-color: #9333ea; }
+.type-fire { background-color: #ea580c; }
+.type-water { background-color: #0284c7; }
+
+.starter-stat-summary {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  width: 100%;
+  margin-top: 8px;
+  background: #ffffff;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+
+/* ============================================================================
+   RESPONSIVE DESIGN SYSTEM — TABLET (<= 1024px) & MOBILE (<= 768px / <= 480px)
+   ============================================================================ */
+
+/* 1. Tablet Landscape & Compact Laptops (max-width: 1024px) */
+@media (max-width: 1024px) {
+  /* Reduce outer stadium padding so handheld chassis maximizes tablet screen real estate */
+  .pokeai-root-container {
+    padding: 16px 12px;
+  }
+
+  /* Adjust minimum chassis height for tablet proportions */
+  .gba-screen-chassis {
+    min-height: 580px;
+  }
+
+  /* Scale retro title text to fit comfortably on tablet screens */
+  .retro-title-text {
+    font-size: 2.6rem;
+  }
+
+  /* Step 1: Constrain hero banner width so it never collides with right-side Guide sprite */
+  .visual-novel-welcome-stage {
+    padding: 32px 32px;
+  }
+
+  .welcome-hero-banner {
+    max-width: 55%;
+  }
+
+  .welcome-hero-title {
+    font-size: 1.6rem;
+  }
+
+  /* Step 2: Balance split columns on tablet (56% card / 44% character stage) */
+  .name-input-split-stage {
+    padding: 24px 28px;
+    gap: 20px;
+  }
+
+  .name-input-left-column {
+    flex: 0 0 56%;
+    max-width: 56%;
+  }
+
+  .name-input-right-column {
+    flex: 0 0 44%;
+    max-width: 44%;
+    min-height: 240px;
+  }
+
+  /* Step 3: Stack starter cards across 100% width in 3 columns, with vertical space below for Guide */
+  .starter-selection-split-stage {
+    flex-direction: column;
+    padding: 16px 24px 0 24px;
+    gap: 12px;
+  }
+
+  .starter-cards-column {
+    flex: 0 0 100%;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .starter-guide-spacer-column {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 100%;
+    min-height: 185px;
+  }
+
+  /* Scale and elevate Guide character sprite proportionally for tablet viewports */
+  .dialogue-character-overlay {
+    bottom: 80px;
+  }
+
+  .dialogue-character-overlay.overlay-right {
+    right: 24px;
+  }
+
+  .dialogue-character-overlay.overlay-left {
+    left: 24px;
+  }
+
+  .dialogue-character-sprite {
+    height: 310px !important;
+  }
+}
+
+/* 2. Tablet Portrait & Mobile Landscape / Large Phones (max-width: 768px) */
+@media (max-width: 768px) {
+  /* Allow header and bottom status bars to wrap gracefully without horizontal overflow */
+  .stadium-header-bar {
+    padding: 10px 16px;
+    font-size: 0.58rem;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .stadium-bottom-bar {
+    padding: 10px 16px;
+    font-size: 0.55rem;
+    flex-direction: column;
+    gap: 6px;
+    text-align: center;
+  }
+
+  /* Compact stage padding and typography for mobile screens */
+  .landing-stage {
+    padding: 24px 16px;
+    gap: 20px;
+  }
+
+  .retro-title-text {
+    font-size: 2rem;
+    letter-spacing: 2px;
+  }
+
+  .metadata-manifest-card {
+    padding: 18px 16px;
+  }
+
+  .manifest-footer-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  /* Make primary GBA action buttons full-width and touch-friendly on mobile */
+  .pokemon-button-action,
+  .press-start-prompt {
+    width: 100%;
+    max-width: 100%;
+    padding: 14px 20px;
+    font-size: 0.72rem;
+    gap: 10px;
+  }
+
+  /* Step 1: Stack welcome banner at top and reserve bottom area for Guide sprite */
+  .visual-novel-welcome-stage {
+    flex-direction: column;
+    align-items: flex-start;
+    min-height: 290px;
+    padding: 24px 20px 185px 20px;
+    justify-content: flex-start;
+  }
+
+  .welcome-hero-banner {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 100%;
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .welcome-hero-title {
+    font-size: 1.35rem;
+  }
+
+  .welcome-hero-subtitle {
+    font-size: 1rem;
+  }
+
+  /* Step 2: Stack Trainer Registration Card above Guide sprite on mobile */
+  .name-input-split-stage {
+    flex-direction: column;
+    padding: 20px 16px 0 16px;
+    min-height: auto;
+    gap: 12px;
+  }
+
+  .name-input-left-column {
+    flex: 0 0 100%;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .name-input-card {
+    max-width: 100%;
+    padding: 20px;
+  }
+
+  .name-input-right-column {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 100%;
+    min-height: 165px;
+  }
+
+  /* Step 3: Stack starter cards into a single touch-friendly column on mobile */
+  .starter-selection-split-stage {
+    padding: 16px 16px 0 16px;
+  }
+
+  .starters-card-grid-compact,
+  .starters-card-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .starter-choice-card {
+    padding: 14px 16px;
+  }
+
+  .starter-guide-spacer-column {
+    min-height: 165px;
+  }
+
+  /* Adjust footer and dialogue box dimensions for mobile ergonomics */
+  .gba-screen-chassis > footer {
+    padding: 0 14px 14px 14px !important;
+  }
+
+  .dialogue-box-wrapper {
+    margin-top: 10px;
+  }
+
+  /* Elevate character sprite upward on mobile so bust, outfit, and hand gesture are clearly visible */
+  .dialogue-character-overlay {
+    bottom: 90px;
+  }
+
+  .dialogue-character-overlay.overlay-right {
+    right: 16px;
+  }
+
+  .dialogue-character-overlay.overlay-left {
+    left: 16px;
+  }
+
+  .dialogue-character-sprite {
+    height: 240px !important;
+  }
+
+  .dialogue-frame-chassis {
+    padding: 18px 16px;
+    min-height: 105px;
+  }
+
+  /* Keep full-width speech content since character is layered behind frosted glass */
+  .dialogue-box-wrapper.placement-right .dialogue-speech-content,
+  .dialogue-box-wrapper.placement-left .dialogue-speech-content {
+    padding-right: 0;
+    padding-left: 0;
+  }
+
+  .dialogue-nameplate-badge {
+    left: 16px;
+    font-size: 0.6rem;
+    padding: 4px 12px;
+  }
+
+  .dialogue-box-wrapper.placement-left .dialogue-nameplate-badge {
+    left: auto;
+    right: 16px;
+  }
+
+  .dialogue-speech-text {
+    font-size: 1.02rem;
+    line-height: 1.5;
+  }
+
+  .dialogue-action-hint {
+    font-size: 0.6rem;
+  }
+}
+
+/* 3. Small Mobile Phones (max-width: 480px) */
+@media (max-width: 480px) {
+  .pokeai-root-container {
+    padding: 8px 6px;
+  }
+
+  .gba-screen-chassis {
+    border-width: 3px;
+    border-radius: 12px;
+    min-height: 540px;
+  }
+
+  .stadium-header-bar {
+    padding: 8px 12px;
+    font-size: 0.5rem;
+  }
+
+  .retro-title-text {
+    font-size: 1.55rem;
+    letter-spacing: 1.5px;
+  }
+
+  .title-badge-top,
+  .welcome-tag-pill {
+    font-size: 0.52rem;
+    padding: 5px 10px;
+  }
+
+  .welcome-hero-title {
+    font-size: 1.15rem;
+  }
+
+  .pokemon-retro-button,
+  .press-start-prompt {
+    font-size: 0.62rem;
+    padding: 12px 14px;
+    gap: 8px;
+  }
+
+  .trainer-name-text-input {
+    font-size: 1.05rem;
+    padding: 10px 12px;
+  }
+
+  .trainer-input-helper-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .dialogue-character-overlay {
+    bottom: 85px;
+  }
+
+  .dialogue-character-overlay.overlay-right {
+    right: 10px;
+  }
+
+  .dialogue-character-overlay.overlay-left {
+    left: 10px;
+  }
+
+  .dialogue-character-sprite {
+    height: 215px !important;
+  }
+
+  .dialogue-frame-chassis {
+    padding: 16px 14px;
+    border-width: 3px;
+  }
+
+  .dialogue-speech-text {
+    font-size: 0.95rem;
+    line-height: 1.45;
+  }
+
+  .dialogue-action-hint {
+    font-size: 0.54rem;
   }
 }

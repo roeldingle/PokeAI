@@ -70,7 +70,7 @@ PokeAI/
    - `frontend/src/components/screen/`: Reserved exclusively for complete screens and game stages (e.g., `LandingTitleScreen.tsx`, `PlayerNameInputScreen.tsx`, `StarterSelectionScreen.tsx`, `BattleArenaScreen.tsx`).
    - `frontend/src/components/ui/`: Reserved for atomic, modular, and reusable widgets across lessons (e.g., `CharacterUI.tsx`, `ButtonUI.tsx`, `GameGuideDialogBox.tsx`, `ProviderStatusBadge.tsx`).
 2. **DAYLIGHT STADIUM DESIGN SYSTEM**:
-   - **Chassis Max-Width**: Centered handheld viewport locked to `max-width: 960px`.
+   - **Chassis Max-Width**: Centered handheld panoramic viewport locked to `width: 1200px; max-width: 100%;` on desktop with pure-CSS responsive breakpoints for Tablet (`<= 1024px`), Mobile (`<= 768px`), and Small Phones (`<= 480px`).
    - **Light Palette**: Crisp daylight handheld casing (`#ffffff`), soft stadium slate exterior (`#e2e8f0`), and clean parchment card layers (`#f8fafc`).
    - **Pokémon Menu Button Standard (`ButtonUI`)**: Authentic GBA dual-bevel 3D borders (`4px solid #1e293b`), tactile 3px sunken depression on `:active`, and bobbing red cursor arrows (`▶` / `◀`).
    - **Animated Sprite Mascot (`CharacterUI`)**: Pixelated animated sprites (`image-rendering: pixelated`) with circular grounding pedestal shadows.

@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from src.core import config
 from src.routes.metadata_routes import metadata_router
+from src.routes.onboarding_routes import onboarding_router
 
 
 def create_pokeai_application() -> FastAPI:
@@ -35,6 +36,7 @@ def create_pokeai_application() -> FastAPI:
 
     # Register the stadium metadata router under /api/v1
     pokeai_application.include_router(metadata_router)
+    pokeai_application.include_router(onboarding_router)
 
     # Provide a simple root status endpoint for quick ping verifications
     @pokeai_application.get("/", tags=["Stadium Health"])
