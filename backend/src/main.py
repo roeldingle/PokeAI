@@ -10,6 +10,7 @@ from src.routes.metadata_routes import metadata_router
 from src.routes.onboarding_routes import onboarding_router
 from src.routes.ai_routes import ai_router
 from src.routes.pokedex_routes import pokedex_router
+from src.routes.battle_routes import battle_router
 
 
 def create_pokeai_application() -> FastAPI:
@@ -41,6 +42,7 @@ def create_pokeai_application() -> FastAPI:
     pokeai_application.include_router(onboarding_router)
     pokeai_application.include_router(ai_router)
     pokeai_application.include_router(pokedex_router)
+    pokeai_application.include_router(battle_router)
 
     # Provide a simple root status endpoint for quick ping verifications
     @pokeai_application.get("/", tags=["Stadium Health"])

@@ -17,6 +17,7 @@ import type { GameMetadataResponse } from "./types/metadata";
 import type { TrainerProfileResponse } from "./types/onboarding";
 import type { LLMResponseEnvelope } from "./types/aiGateway";
 import { PokedexSearchScreen } from "./components/screen/PokedexSearchScreen";
+import { BattleArenaScreen } from "./components/screen/BattleArenaScreen";
 
 type GameStage =
   | "TITLE_SCREEN"
@@ -25,7 +26,8 @@ type GameStage =
   | "STARTER_SELECT"
   | "ONBOARDING_COMPLETE"
   | "AI_GATEWAY_TESTBENCH"
-  | "POKEDEX_SEARCH";
+  | "POKEDEX_SEARCH"
+  | "BATTLE_ARENA";
 
 export const App: React.FC = () => {
   const [currentStage, setCurrentStage] = useState<GameStage>("TITLE_SCREEN");
@@ -204,11 +206,11 @@ export const App: React.FC = () => {
 
                   <div style={{ marginTop: "24px", display: "flex", gap: "10px", flexWrap: "wrap" }}>
                     <ButtonUI
-                      onClick={() => setCurrentStage("AI_GATEWAY_TESTBENCH")}
+                      onClick={() => setCurrentStage("BATTLE_ARENA")}
                       variant="action"
                       showArrowPointer="right"
                     >
-                      📡 Open Gateway Testbench
+                      ⚔️ Enter GBA Battle Arena
                     </ButtonUI>
                     <ButtonUI
                       onClick={() => setCurrentStage("POKEDEX_SEARCH")}
@@ -216,6 +218,13 @@ export const App: React.FC = () => {
                       showArrowPointer="right"
                     >
                       🔍 Open Smart Pokédex
+                    </ButtonUI>
+                    <ButtonUI
+                      onClick={() => setCurrentStage("AI_GATEWAY_TESTBENCH")}
+                      variant="default"
+                      showArrowPointer="right"
+                    >
+                      📡 Gateway Testbench
                     </ButtonUI>
                     <ButtonUI
                       onClick={() => setCurrentStage("TITLE_SCREEN")}
@@ -263,6 +272,18 @@ export const App: React.FC = () => {
       {currentStage === "POKEDEX_SEARCH" && (
         <PokedexSearchScreen
           onBackToPrevious={() => setCurrentStage("ONBOARDING_COMPLETE")}
+        />
+      )}
+
+      {/* Stage 7: GBA Battle Arena (Lesson 05 / Storyboard Screen 3) */}
+      {currentStage === "BATTLE_ARENA" && (
+        <BattleArenaScreen
+          trainerName={registeredTrainerProfile?.trainer_name || confirmedTrainerName || "Red"}
+          selectedPokemonId={
+            registeredTrainerProfile?.selected_starter_monster.starter_pokemon_id || 4
+          }
+          gameGuideName={dynamicGuideName}
+          onExitBattle={() => setCurrentStage("ONBOARDING_COMPLETE")}
         />
       )}
 
