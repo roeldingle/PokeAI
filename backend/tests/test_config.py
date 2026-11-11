@@ -17,19 +17,25 @@ def test_configuration_values_loaded() -> None:
     Ensures that the application never boots in a state of missing vital stadium metadata.
     """
     # Verify that the environment classification is non-empty and set as expected
-    assert config.application_environment == "local"
+    assert config.APP_ENV == "local"
 
     # Verify that the semantic version follows standard numbering
-    assert config.game_version == "0.1.0"
+    assert config.VERSION == "0.1.0"
 
     # Verify that the title matches our canonical project title
-    assert config.game_title == "PokeAI"
+    assert config.GAME_TITLE == "PokeAI"
 
     # Verify that our Game Guide name is properly loaded and non-empty
-    assert config.game_guide_name in ["Shaneil", "Athena"]
+    assert config.GAME_GUIDE in ["Shaneil", "Athena"]
 
     # Verify that CORS origins list contains the expected frontend development server URL
-    assert "http://localhost:5173" in config.backend_cors_origins
+    assert "http://localhost:5173" in config.BACKEND_CORS_ORIGINS
+
+    # Verify that AI model provider defaults are loaded
+    assert config.OLLAMA_BASE_URL == "http://localhost:11434"
+    assert config.OLLAMA_MODEL == "qwen2.5:3b"
+    assert config.GROQ_MODEL == "qwen/qwen3.8-27b"
+    assert config.GEMINI_MODEL == "gemini-3.1-flash-lite"
 
 
 def test_get_metadata_endpoint_success() -> None:
@@ -49,7 +55,7 @@ def test_get_metadata_endpoint_success() -> None:
     assert response_payload["application_environment"] == "local"
     assert response_payload["game_version"] == "0.1.0"
     assert response_payload["game_title"] == "PokeAI"
-    assert response_payload["game_guide_name"] == config.game_guide_name
+    assert response_payload["game_guide_name"] == config.GAME_GUIDE
     assert "monster battler" in response_payload["game_description"]
     assert "AI Engineering" in response_payload["project_learning_goal"]
 

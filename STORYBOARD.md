@@ -1,7 +1,7 @@
 # PokeAI: Progressive Lesson 0 – Lesson 11 UI & AI Storyboard
 
 > **How to Read This Storyboard**
-> Every lesson in **PokeAI** builds directly onto the screen from the previous lesson. You begin in **Lesson 0** with the landing screen loading `.env` game metadata (`GAME_TITLE="PokeAI"`, `VERSION="0.1.0"`, `PROJECT_GOAL`, `GAME_DESCRIPTION`, `GAME_GUIDE="Shaneil"`, `BACKEND_CORS_ORIGINS`) from `backend/src/core/config.py`. In **Lesson 1**, your persistent **Game Guide ("Shaneil")** appears on the **RIGHT side** of the dialogue overlay to ask for your name and starter monster. Across **Lessons 2–11**, Shaneil stays with you on the right side as your AI Coach and Explainer!
+> Every lesson in **PokeAI** builds directly onto the screen from the previous lesson. You begin in **Lesson 0** with the landing screen loading `.env` game metadata (`GAME_TITLE="PokeAI"`, `VERSION="0.1.0"`, `PROJECT_GOAL`, `GAME_DESCRIPTION`, `GAME_GUIDE`, `BACKEND_CORS_ORIGINS`) from `backend/src/core/config.py`. In **Lesson 1**, your persistent **Game Guide** appears on the **RIGHT side** of the dialogue overlay to ask for your name and starter monster. Across **Lessons 2–11**, the Game Guide stays with you on the right side as your AI Coach and Explainer!
 
 ---
 
@@ -9,7 +9,7 @@
 
 ```mermaid
 flowchart LR
-    L0["L0: Landing (.env Game Info)"] --> L1["L1: Right-Side Guide Shaneil (Name & Starters)"]
+    L0["L0: Landing (.env Game Info)"] --> L1["L1: Right-Side Game Guide (Name & Starters)"]
     L1 --> L2["L2: Resilient AI Brain & Gateway"]
     L2 --> L3["L3: PokeAPI Async Lore Ingestion"]
     L3 --> L4["L4: ChromaDB Vector Memory & Pokédex"]
@@ -47,7 +47,7 @@ flowchart LR
 +-----------------------------------------------------------------------------------+
 ```
 
-### Screen 0.2 — Game Guide JRPG Welcome (`Shaneil` Overlay on the RIGHT Side)
+### Screen 0.2 — Game Guide JRPG Welcome (Game Guide Overlay on the RIGHT Side)
 *(Game Guide portrait and nameplate badge anchored on the **RIGHT** side of the framed bottom dialogue box, with `[Press A to Next ▸]` indicator at the bottom-right)*
 ```text
 +-----------------------------------------------------------------------------------+
@@ -61,9 +61,9 @@ flowchart LR
 |                                                                  / |       | \    |
 |                                                                    |       |      |
 |                                                           +-------------------+   |
-|                        (Game Guide & Future AI Coach)     | 💎 S H A N E I L  |   |
+|                        (Game Guide & Future AI Coach)     | 💎 G A M E  G U I D E |
 | +---------------------------------------------------------+-------------------+--+|
-| | "Welcome to PokeAI! I'm Shaneil, your Game Guide and AI Engineering Coach.    ||
+| | "Welcome to PokeAI! I'm your Game Guide and AI Engineering Coach.             ||
 | |  Together, we'll master AI Engineering principles step-by-step while           ||
 | |  building and battling inside this arena!"                                     ||
 | |                                                        [ Press A to Next ▸ ]   ||
@@ -71,10 +71,10 @@ flowchart LR
 +-----------------------------------------------------------------------------------+
 ```
 
-### Screen 0.3 — Game Guide Asking the Player to Input His/Her Name (`Shaneil` on the RIGHT Side)
+### Screen 0.3 — Game Guide Asking the Player to Input His/Her Name (Game Guide on the RIGHT Side)
 ```text
 +-----------------------------------------------------------------------------------+
-| POKEAI [v0.1.0] — TRAINER REGISTRATION     [🟢 Guide: Shaneil | Step 3 of 4]     |
+| POKEAI [v0.1.0] — TRAINER REGISTRATION     [🟢 Guide: Online | Step 3 of 4]       |
 +-----------------------------------------------------------------------------------+
 |                                                                                   |
 |             +-------------------------------------------------------+             |
@@ -88,7 +88,7 @@ flowchart LR
 |                                                                      .---.        |
 |                                                                     | ^ ^ |       |
 |                                                           +---------+ '-' +---+   |
-|                                                           | 💎 S H A N E I L  |   |
+|                                                           | 💎 G A M E  G U I D E |
 | +---------------------------------------------------------+-------------------+--+|
 | | "Before I hand you your first partner monster, tell me—what is your name,     ||
 | |  Trainer? Type your name above and press [A] when you're ready!"               ||
@@ -97,7 +97,7 @@ flowchart LR
 +-----------------------------------------------------------------------------------+
 ```
 
-### Screen 0.4 — 3 Starter Monster Selection (`Shaneil` on the RIGHT Side)
+### Screen 0.4 — 3 Starter Monster Selection (Game Guide on the RIGHT Side)
 ```text
 +-----------------------------------------------------------------------------------+
 | POKEAI [v0.1.0] — STARTER SELECTION        [POST /api/v1/onboarding/register]    |
@@ -112,7 +112,7 @@ flowchart LR
 |                                                                      .---.        |
 |                                                                     | ^ ^ |       |
 |                                                           +---------+ '-' +---+   |
-|                                                           | 💎 S H A N E I L  |   |
+|                                                           | 💎 G A M E  G U I D E |
 | +---------------------------------------------------------+-------------------+--+|
 | | "Awesome choice, Roel_AI_Hero! Charmander's Fire attacks deal 2x damage       ||
 | |  against Grass and Ice monsters! Press [A] to confirm your partner!"           ||
@@ -123,9 +123,9 @@ flowchart LR
 
 ### Player Action & Under-the-Hood Flow (Lesson 0)
 - **Player Action**:
-  1. Views `.env` metadata (`GAME_TITLE="PokeAI"`, `VERSION="0.1.0"`, `PROJECT_GOAL`, `GAME_DESCRIPTION`, `GAME_GUIDE="Shaneil"`) on **Screen 0.1** and presses any key -> React calls `GET /api/v1/onboarding/welcome`.
-  2. Presses `A` on **Screen 0.2** after right-side Game Guide **Shaneil** introduces herself.
-  3. Types their Trainer Name on **Screen 0.3** while **Shaneil** asks for their name, and presses `A`.
+  1. Views `.env` metadata (`GAME_TITLE="PokeAI"`, `VERSION="0.1.0"`, `PROJECT_GOAL`, `GAME_DESCRIPTION`, `GAME_GUIDE`) on **Screen 0.1** and presses any key -> React calls `GET /api/v1/onboarding/welcome`.
+  2. Presses `A` on **Screen 0.2** after right-side Game Guide introduces themselves.
+  3. Types their Trainer Name on **Screen 0.3** while the Game Guide asks for their name, and presses `A`.
   4. Selects 1 of the 3 starters (**Bulbasaur**, **Charmander**, or **Squirtle**) on **Screen 0.4** and presses `A` -> React sends `POST /api/v1/onboarding/register`.
 - **Sample On-Screen Payload (`GET /api/v1/onboarding/welcome` from `core/config.py`)**:
 ```json
@@ -135,13 +135,13 @@ flowchart LR
   "game_title": "PokeAI",
   "game_description": "A turn-based monster battler engineered step-by-step to master AI Engineering principles.",
   "project_goal": "AI Engineering Path while building a turn-based monster battler game.",
-  "game_guide": "Shaneil"
+  "game_guide": "Game Guide"
 }
 ```
 
 ---
 
-## Screen 1 (Lesson 1): The Three-Channel AI Radio & Gateway Playground (Shaneil Gets Her AI Brain!)
+## Screen 1 (Lesson 1): The Three-Channel AI Radio & Gateway Playground (Game Guide Gets an AI Brain!)
 
 ### 1. Visual Wireframe
 ```text
@@ -373,14 +373,14 @@ flowchart LR
 
 ---
 
-## Screen 4 (Lesson 4): The `ASK GUIDE` Battle Whisperer (Shaneil Right-Side Overlay)
+## Screen 4 (Lesson 4): The `ASK GUIDE` Battle Whisperer (Game Guide Right-Side Overlay)
 
 ### 4.1 Visual Wireframe (Selecting `ASK GUIDE` from the Action Menu)
 ```text
 +-----------------------------------------------------------------------------------+
 | POKEAI [v0.4.0]     [Turn #02]                 [🟢 GROQ: llama-3.1-8b | ⚡ 142ms] |
 +-----------------------------------------------------------------------------------+
-| 🎙️ COMMENTATOR TICKER: "The Trainer pauses to consult with Game Guide Shaneil..." |
+| 🎙️ COMMENTATOR TICKER: "The Trainer pauses to consult with the Game Guide..."       |
 +-----------------------------------------------------------------------------------+
 |                                                                      .---.        |
 |  +------------------------------+                                   / 🌸  \       |
@@ -389,7 +389,7 @@ flowchart LR
 |  +------------------------------+                                 /|  💎   |\     |
 |                                                                  / |       | \    |
 |         🔥 (Back Sprite)                                  +-------------------+   |
-|   (====== Grassy Patch ======)                            | 💎 S H A N E I L  |   |
+|   (====== Grassy Patch ======)                            | 💎 G A M E  G U I D E |
 | +---------------------------------------------------------+-------------------+--+|
 | | 💡 GUIDE TACTICAL MATCHUP ADVICE (ChromaDB Lore + RAG):                         ||
 | | "Trainer, Pidgey is Normal/Flying type! Your Charmander's Ember deals neutral   ||
@@ -402,12 +402,12 @@ flowchart LR
 
 ### 4.2 Player Action & UI State Change
 - **Player Action**: Navigates to `ASK GUIDE` in the bottom-right 2x2 menu and presses `A` (or clicks `ASK GUIDE`).
-- **UI State Change**: The battle temporarily pauses, and Guide **`Shaneil`'s right-side portrait, nameplate badge, and framed dialogue box** smoothly slide over the bottom interface displaying real-time RAG tactical advice. Pressing `[A]` returns smoothly to the action menu.
+- **UI State Change**: The battle temporarily pauses, and the Game Guide's right-side portrait, nameplate badge, and framed dialogue box smoothly slide over the bottom interface displaying real-time RAG tactical advice. Pressing `[A]` returns smoothly to the action menu.
 
 ### 4.3 Under-the-Hood AI Pipeline Triggered
 1. React calls `GET /api/v1/battle/coach?battle_id=b_101`.
 2. `CoachRAGService` retrieves Pidgey's weaknesses and stats from **ChromaDB**, merges them into `coach_prompt_templates.py`, and queries `ResilientLLMGateway`.
-3. The generated advice is returned and rendered in Shaneil's right-side dialogue box.
+3. The generated advice is returned and rendered in the Game Guide's right-side dialogue box.
 
 ---
 

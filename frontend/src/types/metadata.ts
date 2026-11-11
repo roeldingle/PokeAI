@@ -20,6 +20,6 @@ export interface GameMetadataResponse {
   // Narrative summary and description
   game_description: string;
 
-  // Name of our AI Game Guide (Shaneil)
+  // Name of our AI Game Guide loaded dynamically from backend configuration
   game_guide_name: string;
 }

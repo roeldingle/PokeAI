@@ -1,4 +1,5 @@
 # backend/requirements.txt
+
 # High-performance async web framework for our stadium referee server
 fastapi>=0.110.0
 # Lightning-fast ASGI web server implementation to run FastAPI
@@ -11,3 +12,13 @@ python-dotenv>=1.0.0
 pytest>=8.0.0
 # Next-generation HTTP client for async requests and FastAPI test client
 httpx>=0.27.0
+
+# === LangChain Framework & Provider Packages (Lesson 02) ===
+# Standard base interfaces, messages, and prompt templates
+langchain-core>=0.3.0
+# Channel 1: Local Ollama integration for offline tactical reasoning
+langchain-ollama>=0.2.0
+# Channel 2: High-speed cloud LPU inference client
+langchain-groq>=0.2.0
+# Channel 3: Google Gemini SDK integration for deep strategic backup
+langchain-google-genai>=2.0.0

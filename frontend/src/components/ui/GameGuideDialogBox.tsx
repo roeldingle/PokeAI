@@ -183,22 +183,32 @@ export const GameGuideDialogBox: React.FC<GameGuideDialogBoxProps> = ({
   const shouldRenderCharacterSprite: boolean =
     characterImagePlacement !== "none" && Boolean(characterImageUrl);
 
-  // Render displayed text with optional highlighted player name badge
-  const renderHighlightedDialogueText = () => {
-    if (!highlightedTerm || !displayedDialogueText.includes(highlightedTerm)) {
-      return displayedDialogueText;
-    }
+    // Render displayed text with optional highlighted player name badge (case-insensitive)
+    const renderHighlightedDialogueText = () => {
+      if (!highlightedTerm || !highlightedTerm.trim()) {
+        return displayedDialogueText;
+      }
 
-    const segments = displayedDialogueText.split(highlightedTerm);
-    return segments.map((segment, index) => (
-      <React.Fragment key={index}>
-        {segment}
-        {index < segments.length - 1 && (
-          <span className="dialogue-trainer-highlight">{highlightedTerm}</span>
-        )}
-      </React.Fragment>
-    ));
-  };
+      // Escape special regex characters in the trainer moniker
+      const escapedMoniker = highlightedTerm.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const regex = new RegExp(`(${escapedMoniker})`, "gi");
+
+      if (!regex.test(displayedDialogueText)) {
+        return displayedDialogueText;
+      }
+
+      const segments = displayedDialogueText.split(regex);
+      return segments.map((segment, index) => {
+        if (segment.toLowerCase() === highlightedTerm.trim().toLowerCase()) {
+          return (
+            <span key={index} className="dialogue-trainer-highlight">
+              {segment}
+            </span>
+          );
+        }
+        return <React.Fragment key={index}>{segment}</React.Fragment>;
+      });
+    };
 
   return (
     <div

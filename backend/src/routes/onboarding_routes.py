@@ -18,7 +18,7 @@ onboarding_router = APIRouter(
     tags=["Trainer Onboarding"],
 )
 
-# Canonical catalog of the 3 Starter Monsters presented by Guide Shaneil
+# Canonical catalog of the 3 Starter Monsters presented by the Game Guide
 AVAILABLE_STARTER_MONSTERS_CATALOG: dict[int, StarterMonsterInfo] = {
     1: StarterMonsterInfo(
         starter_pokemon_id=1,

@@ -1,6 +1,6 @@
 # AGENTS.md — AI Pair-Programming & Pedagogical Standards
 
-> **Project**: **PokeAI** (`GAME_TITLE="PokeAI"`, `GAME_GUIDE="Shaneil"`)
+> **Project**: **PokeAI** (`GAME_TITLE="PokeAI"`, `GAME_GUIDE` loaded dynamically via `.env` / `config.py`)
 > **Goal**: AI Engineering Path while building a turn-based monster battler game (`Lesson 0` to `Lesson 11`).
 
 ---

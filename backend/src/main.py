@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from src.core import config
 from src.routes.metadata_routes import metadata_router
 from src.routes.onboarding_routes import onboarding_router
+from src.routes.ai_routes import ai_router
 
 
 def create_pokeai_application() -> FastAPI:
@@ -17,9 +18,9 @@ def create_pokeai_application() -> FastAPI:
     """
     # Instantiate the primary FastAPI server instance with descriptive arena metadata
     pokeai_application = FastAPI(
-        title=config.game_title,
-        version=config.game_version,
-        description=config.game_description,
+        title=config.GAME_TITLE,
+        version=config.VERSION,
+        description=config.GAME_DESCRIPTION,
         docs_url="/docs",
         redoc_url="/redoc",
     )
@@ -28,15 +29,16 @@ def create_pokeai_application() -> FastAPI:
     # In production web apps, CORS prevents untrusted external domains from hijacking battle commands
     pokeai_application.add_middleware(
         CORSMiddleware,
-        allow_origins=config.backend_cors_origins,
+        allow_origins=config.BACKEND_CORS_ORIGINS,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
     )
 
-    # Register the stadium metadata router under /api/v1
+    # Register domain routers under /api/v1
     pokeai_application.include_router(metadata_router)
     pokeai_application.include_router(onboarding_router)
+    pokeai_application.include_router(ai_router)
 
     # Provide a simple root status endpoint for quick ping verifications
     @pokeai_application.get("/", tags=["Stadium Health"])
@@ -46,7 +48,7 @@ def create_pokeai_application() -> FastAPI:
         """
         return {
             "status": "online",
-            "message": f"Welcome to the {config.game_title} Stadium! Access /docs for interactive API documentation.",
+            "message": f"Welcome to the {config.GAME_TITLE} Stadium! Access /docs for interactive API documentation.",
         }
 
     return pokeai_application
