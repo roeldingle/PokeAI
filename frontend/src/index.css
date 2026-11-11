@@ -1547,18 +1547,45 @@ body {
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
 }
 
+/* Post-battle Game Guide sprite overlay tuning: ensures Athena is never washed out and remains crisp */
+.guide-post-battle-container .dialogue-character-overlay {
+  bottom: 24px !important;
+  z-index: 6 !important;
+}
+
+.guide-post-battle-container .dialogue-character-sprite {
+  height: 250px !important;
+  max-height: 250px !important;
+}
+
 @media (max-width: 1024px) {
   .post-battle-progression-banner {
-    padding-right: 210px !important;
+    max-width: calc(100% - 220px) !important;
+  }
+  .guide-post-battle-container .dialogue-character-overlay {
+    bottom: 24px !important;
+    right: 20px !important;
+  }
+  .guide-post-battle-container .dialogue-character-sprite {
+    height: 240px !important;
+    max-height: 240px !important;
   }
 }
 
 @media (max-width: 768px) {
   .post-battle-progression-banner {
-    padding-right: 16px !important;
+    max-width: 100% !important;
+    padding-right: 14px !important;
     flex-direction: column !important;
     align-items: flex-start !important;
     gap: 8px !important;
+  }
+  .guide-post-battle-container .dialogue-character-overlay {
+    bottom: 60px !important;
+  }
+  .guide-post-battle-container .dialogue-character-sprite {
+    height: 200px !important;
+    max-height: 200px !important;
   }
 }
 

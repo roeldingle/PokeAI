@@ -784,7 +784,7 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
               />
             </div>
 
-            {/* Player HUD Card */}
+            {/* Player HUD Card (Retracted smoothly during post-battle debrief so Coach Athena has open stage) */}
             <div
               style={{
                 background: "#ffffff",
@@ -793,6 +793,12 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
                 padding: "14px 20px",
                 minWidth: "320px",
                 boxShadow: "6px 6px 0px rgba(15, 23, 42, 0.12)",
+                opacity: showPostBattleGuide ? 0 : 1,
+                pointerEvents: showPostBattleGuide ? "none" : "auto",
+                transform: showPostBattleGuide
+                  ? "translateY(18px) scale(0.96)"
+                  : "translateY(0) scale(1)",
+                transition: "opacity 0.35s ease, transform 0.35s ease",
               }}
             >
               <div
@@ -944,7 +950,7 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
                     border: "3px solid #22c55e",
                     borderRadius: "10px",
                     padding: "12px 18px",
-                    paddingRight: "260px", // Unobstructed clearance: ensures Guide sprite never covers badges
+                    maxWidth: "calc(100% - 250px)", // Physically stops before Athena's right column to prevent overlap
                     marginBottom: "14px",
                     display: "flex",
                     justifyContent: "space-between",
@@ -1027,7 +1033,7 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
                       : "3px solid #ef4444",
                     borderRadius: "10px",
                     padding: "12px 18px",
-                    paddingRight: "260px", // Unobstructed clearance: ensures Guide sprite never covers badges
+                    maxWidth: "calc(100% - 250px)", // Physically stops before Athena's right column to prevent overlap
                     marginBottom: "14px",
                     display: "flex",
                     justifyContent: "space-between",
@@ -1101,7 +1107,7 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
                 }
                 onAdvanceDialogue={onExitBattle}
                 characterImagePlacement="right"
-                characterImageHeightPixels={280}
+                characterImageHeightPixels={250}
               />
 
               {/* Action Buttons to Replay or Return */}
