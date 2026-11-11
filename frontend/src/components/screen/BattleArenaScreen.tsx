@@ -18,6 +18,8 @@ import { TeamSwapModal } from "../ui/TeamSwapModal";
 import { CatchRouletteModal } from "../ui/CatchRouletteModal";
 import { TacticalGuideOverlay } from "../ui/TacticalGuideOverlay";
 import { GymLeaderBadge } from "../ui/GymLeaderBadge";
+import { CommentatorTickerBar } from "../ui/CommentatorTickerBar";
+import { useCommentatorStream } from "../../hooks/useCommentatorStream";
 import {
   fetchCoachTacticalAdvice,
   initiateBattleMatch,
@@ -80,6 +82,15 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
   const [selectedOpponentId, setSelectedOpponentId] = useState<number>(16);
   const [gymLeaderDecision, setGymLeaderDecision] =
     useState<GymLeaderTurnDecision | null>(null);
+
+  // Lesson 10: Live Stadium Announcer SSE Stream Hook
+  const {
+    commentaryText,
+    isStreaming: isAnnouncerStreaming,
+    timeToFirstTokenMs,
+    totalTokensStreamed,
+    triggerCommentaryStream,
+  } = useCommentatorStream();
 
   // Combat loop & view states
   const [isMoveGridActive, setIsMoveGridActive] = useState<boolean>(false);
@@ -155,6 +166,7 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
       setBattleNarrationText(
         `A wild ${sessionResult.opponent_monster.pokemon_name} appeared! What will ${sessionResult.player_monster.pokemon_name} do?`
       );
+      triggerCommentaryStream(sessionResult.battle_session_id);
     } catch (err) {
       setErrorMessage(
         err instanceof Error ? err.message : "Failed to load battle arena."
@@ -394,6 +406,7 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
       if (resolutionResult.gym_leader_decision) {
         setGymLeaderDecision(resolutionResult.gym_leader_decision);
       }
+      triggerCommentaryStream(activeSession.battle_session_id);
       setTimeout(() => {
         setPlayerMonster(resolutionResult.player_monster);
         setOpponentMonster(resolutionResult.opponent_monster);
@@ -600,6 +613,14 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
           </div>
           <ProviderStatusBadge />
         </header>
+
+        {/* Lesson 10: Top Stadium LED Ticker Tape streaming SSE Play-by-Play */}
+        <CommentatorTickerBar
+          commentaryText={commentaryText}
+          isStreaming={isAnnouncerStreaming}
+          timeToFirstTokenMs={timeToFirstTokenMs}
+          totalTokensStreamed={totalTokensStreamed}
+        />
 
         {/* Retro GBA Battle Stage with Daylight Field Atmosphere */}
         <main

@@ -626,7 +626,7 @@ class BattleEngineService:
             f"Turn {turn_number}: {player_monster.pokemon_name} used {chosen_player_move.move_name}; "
             f"{opponent_monster.pokemon_name} chose {opponent_move.move_name} ({agent_decision.agent_mood.value})."
         )
-        gym_leader_decision_payload = agent_decision.model_dump()
+        gym_leader_decision_payload = agent_decision.model_dump(mode="json")
         session_data["current_turn_number"] += 1
         session_data["is_turn_limit_reached"] = is_turn_limit_reached
         session_data["is_battle_concluded"] = is_concluded
