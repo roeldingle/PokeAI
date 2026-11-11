@@ -1,11 +1,19 @@
 /**
  * Battle Service Client
- * Dispatches asynchronous HTTP calls to FastAPI /api/v1/battle endpoints.
+ * Dispatches asynchronous HTTP calls to FastAPI /api/v1/battle endpoints:
+ * - initiateBattleMatch: Starts a new combat match against an opponent.
+ * - resolveBattleTurn: Resolves combat round with speed initiative and PP decrement.
+ * - fetchBattleSession: Retrieves real-time battle session state.
+ * - swapActivePartyMonster: Executes pre-Turn 1 party swap (Lesson 6).
+ * - fetchTrainerPartyPool: Fetches trainer's recruited party roster and progression stats.
+ * - spinCatchRoulette: Executes Lesson 7 overtime capture wheel when Turn 5 expires.
  */
 
 import type {
   BattleSessionData,
   BattleTurnResolutionResponse,
+  CatchRouletteOutcome,
+  CatchRouletteSpinRequest,
   TeamSwapResponse,
   TrainerPartyPoolState,
 } from "../types/battle";
@@ -142,6 +150,33 @@ export async function fetchTrainerPartyPool(
     const errorPayload = await response.json().catch(() => ({}));
     throw new Error(
       errorPayload.detail || `Failed to fetch trainer party pool (Status ${response.status})`
+    );
+  }
+
+  return response.json();
+}
+
+/**
+ * Lesson 7: Dispatches a roulette spin and overtime capture attempt.
+ */
+export async function spinCatchRoulette(
+  spinRequest: CatchRouletteSpinRequest
+): Promise<CatchRouletteOutcome> {
+  const response = await fetch(
+    `${BACKEND_API_BASE_URL}/api/v1/battle/catch/roulette`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(spinRequest),
+    }
+  );
+
+  if (!response.ok) {
+    const errorPayload = await response.json().catch(() => ({}));
+    throw new Error(
+      errorPayload.detail || `Catch roulette failed (Status ${response.status})`
     );
   }
 

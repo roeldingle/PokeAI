@@ -15,6 +15,7 @@ import { ButtonUI } from "../ui/ButtonUI";
 import { ProviderStatusBadge } from "../ui/ProviderStatusBadge";
 import { GameGuideDialogBox } from "../ui/GameGuideDialogBox";
 import { TeamSwapModal } from "../ui/TeamSwapModal";
+import { CatchRouletteModal } from "../ui/CatchRouletteModal";
 import {
   initiateBattleMatch,
   resolveBattleTurn,
@@ -24,6 +25,7 @@ import type {
   ActiveBattleEntity,
   BattleSessionData,
   BattleTurnResolutionResponse,
+  CatchRouletteOutcome,
   PokemonMoveSlot,
   TrainerPartyPoolState,
   VictoryProgressionUpdateResponse,
@@ -55,6 +57,12 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
   const [isSwapInProgress, setIsSwapInProgress] = useState<boolean>(false);
   const [progressionReward, setProgressionReward] =
     useState<VictoryProgressionUpdateResponse | null>(null);
+
+  // Lesson 7: Catch Pokémon Roulette State
+  const [isCatchRouletteModalOpen, setIsCatchRouletteModalOpen] =
+    useState<boolean>(false);
+  const [catchRouletteOutcome, setCatchRouletteOutcome] =
+    useState<CatchRouletteOutcome | null>(null);
 
   // Combat loop & view states
   const [isMoveGridActive, setIsMoveGridActive] = useState<boolean>(false);
@@ -99,6 +107,8 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
       setBattleOutcome(null);
       setIsMoveGridActive(false);
       setIsTeamSwapModalOpen(false);
+      setIsCatchRouletteModalOpen(false);
+      setCatchRouletteOutcome(null);
       setProgressionReward(null);
 
       // Use the trainer's current lead monster if available, otherwise selectedPokemonId
@@ -404,7 +414,7 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
             );
           } else if (isTurnLimitReached) {
             setBattleNarrationText(
-              `⏱️ 5-TURN CLOCK EXPIRED! Wild ${opponentMonster?.pokemon_name} survived all 5 turns! (Catch Roulette unlocks in Lesson 7)`
+              `⏱️ 5-TURN CLOCK EXPIRED! Wild ${opponentMonster?.pokemon_name} survived all 5 turns! Overtime Pokéball Roulette initiated!`
             );
           } else {
             setBattleNarrationText(
@@ -413,10 +423,16 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
           }
         }, 1600);
 
-        // Slide in the Game Guide debrief after the faint animation finishes
-        setTimeout(() => {
-          setShowPostBattleGuide(true);
-        }, 2200);
+        // Slide in Lesson 7 Catch Roulette Modal on Turn Limit, or Game Guide debrief on knockout/faint
+        if (isTurnLimitReached && !isVictor) {
+          setTimeout(() => {
+            setIsCatchRouletteModalOpen(true);
+          }, 2000);
+        } else {
+          setTimeout(() => {
+            setShowPostBattleGuide(true);
+          }, 2200);
+        }
       }
     } catch (err) {
       setBattleNarrationText(
@@ -427,6 +443,19 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
         setIsTurnResolving(false);
       }, 1800);
     }
+  };
+
+  // Handle Lesson 7 Catch Roulette outcome resolution
+  const handleCatchResolved = (outcome: CatchRouletteOutcome) => {
+    setCatchRouletteOutcome(outcome);
+    if (outcome.updated_party_pool) {
+      setPartyPoolState(outcome.updated_party_pool);
+    }
+    setBattleNarrationText(outcome.narrative_outcome);
+    setIsCatchRouletteModalOpen(false);
+    setTimeout(() => {
+      setShowPostBattleGuide(true);
+    }, 500);
   };
 
   // Compute HP percentage for health bars
@@ -532,6 +561,20 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
             onSelectPartyMonster={handlePartySwap}
             onCloseModal={() => setIsTeamSwapModalOpen(false)}
           />
+
+          {/* Lesson 7 Overtime Catch Pokémon Roulette Modal */}
+          {opponentMonster && (
+            <CatchRouletteModal
+              isOpen={isCatchRouletteModalOpen}
+              trainerName={trainerName}
+              opponentMonsterName={opponentMonster.pokemon_name}
+              opponentPokemonId={opponentMonster.pokemon_id}
+              opponentSpriteUrl={opponentMonster.sprite_front_url}
+              opponentLevel={opponentMonster.level}
+              onCatchResolved={handleCatchResolved}
+              onCloseModal={() => setIsCatchRouletteModalOpen(false)}
+            />
+          )}
           {/* Top Row: Opponent HUD (Left) & Opponent Sprite on Grassy Pedestal (Right) */}
           <div
             style={{
@@ -895,17 +938,21 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
               {/* Lesson 6 Post-Battle Progression & Auto-Recruit Summary Banner */}
               {battleOutcome === "VICTORY" && progressionReward && (
                 <div
+                  className="post-battle-progression-banner"
                   style={{
-                    backgroundColor: "rgba(255, 255, 255, 0.94)",
+                    backgroundColor: "rgba(255, 255, 255, 0.96)",
                     border: "3px solid #22c55e",
                     borderRadius: "10px",
                     padding: "12px 18px",
+                    paddingRight: "260px", // Unobstructed clearance: ensures Guide sprite never covers badges
                     marginBottom: "14px",
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
                     flexWrap: "wrap",
                     gap: "12px",
+                    position: "relative",
+                    zIndex: 2,
                   }}
                 >
                   <div>
@@ -943,6 +990,7 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
                           border: "2px solid #3b82f6",
                           padding: "4px 8px",
                           borderRadius: "6px",
+                          whiteSpace: "nowrap",
                         }}
                       >
                         🎉 Recruited {progressionReward.recruited_opponent_pokemon_name}! (TEAM Unlocked)
@@ -958,12 +1006,77 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
                           border: "2px solid #f59e0b",
                           padding: "4px 8px",
                           borderRadius: "6px",
+                          whiteSpace: "nowrap",
                         }}
                       >
                         🔓 Move Unlocked: {progressionReward.newly_unlocked_move_names.join(", ")}!
                       </span>
                     )}
                   </div>
+                </div>
+              )}
+
+              {/* Lesson 7 Overtime Catch Roulette Summary Banner */}
+              {battleOutcome === "TURN_LIMIT" && catchRouletteOutcome && (
+                <div
+                  className="post-battle-progression-banner"
+                  style={{
+                    backgroundColor: "rgba(255, 255, 255, 0.96)",
+                    border: catchRouletteOutcome.capture_successful
+                      ? "3px solid #22c55e"
+                      : "3px solid #ef4444",
+                    borderRadius: "10px",
+                    padding: "12px 18px",
+                    paddingRight: "260px", // Unobstructed clearance: ensures Guide sprite never covers badges
+                    marginBottom: "14px",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    flexWrap: "wrap",
+                    gap: "12px",
+                    position: "relative",
+                    zIndex: 2,
+                  }}
+                >
+                  <div>
+                    <div
+                      style={{
+                        fontFamily: "var(--font-pixel)",
+                        fontSize: "0.72rem",
+                        color: catchRouletteOutcome.capture_successful
+                          ? "#15803d"
+                          : "#b91c1c",
+                        marginBottom: "4px",
+                      }}
+                    >
+                      🎰 POKÉBALL ROULETTE: {catchRouletteOutcome.selected_pokeball_tier} BALL (
+                      {Math.round(catchRouletteOutcome.capture_probability * 100)}% CATCH RATE)
+                    </div>
+                    <div style={{ fontSize: "0.78rem", color: "#334155" }}>
+                      {catchRouletteOutcome.capture_successful
+                        ? `Captured wild ${catchRouletteOutcome.captured_monster_name} during 5-turn overtime!`
+                        : `Wild ${catchRouletteOutcome.captured_monster_name} broke free and fled into the wild!`}
+                    </div>
+                  </div>
+
+                  {catchRouletteOutcome.capture_successful && (
+                    <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                      <span
+                        style={{
+                          fontFamily: "var(--font-pixel)",
+                          fontSize: "0.58rem",
+                          backgroundColor: "#dbeafe",
+                          color: "#1e40af",
+                          border: "2px solid #3b82f6",
+                          padding: "4px 8px",
+                          borderRadius: "6px",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        🎉 Recruited {catchRouletteOutcome.captured_monster_name}! (TEAM Unlocked)
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -974,7 +1087,11 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
                   battleOutcome === "VICTORY"
                     ? `Outstanding battle, ${trainerName}! Your ${playerMonster.pokemon_name} knocked out wild ${opponentMonster.pokemon_name} within the 5-turn clock! ${opponentMonster.pokemon_name} respected your strength and joined your party pool, and ${playerMonster.pokemon_name} earned +45 EXP and a permanent +1% stat boost!`
                     : battleOutcome === "TURN_LIMIT"
-                    ? `Time's up, ${trainerName}! All 5 turns on the stadium clock have expired and wild ${opponentMonster.pokemon_name} is still standing! In Lesson 7, this triggers the Catch Pokémon Roulette Wheel!`
+                    ? catchRouletteOutcome?.capture_successful
+                      ? `Time's up on the 5-turn clock, ${trainerName}! But your overtime Pokéball Roulette clutch throw succeeded! The ${catchRouletteOutcome.selected_pokeball_tier} Ball held firm, and wild ${opponentMonster.pokemon_name} was caught and recruited into your party roster! You can now swap them into combat via the TEAM button!`
+                      : catchRouletteOutcome
+                      ? `Time's up on the 5-turn clock, ${trainerName}! The Pokéball Roulette landed on the ${catchRouletteOutcome.selected_pokeball_tier} Ball, but wild ${opponentMonster.pokemon_name} put up a fierce fight and broke free! Every battle sharpens your timing—jump back in and try again!`
+                      : `Time's up, ${trainerName}! All 5 turns on the stadium clock have expired and wild ${opponentMonster.pokemon_name} is still standing!`
                     : `Hang in there, ${trainerName}! Every Champion suffers tough setbacks early on. ${playerMonster.pokemon_name} gave it everything! Let's patch up at the Pokémon Center, study our elemental type charts, and jump right back in!`
                 }
                 promptActionHint={
@@ -984,7 +1101,7 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
                 }
                 onAdvanceDialogue={onExitBattle}
                 characterImagePlacement="right"
-                characterImageHeightPixels={360}
+                characterImageHeightPixels={280}
               />
 
               {/* Action Buttons to Replay or Return */}
