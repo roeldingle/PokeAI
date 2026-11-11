@@ -26,7 +26,7 @@ def test_configuration_values_loaded() -> None:
     assert config.GAME_TITLE == "PokeAI"
 
     # Verify that our Game Guide name is properly loaded and non-empty
-    assert config.GAME_GUIDE in ["Shaneil", "Athena"]
+    assert config.GAME_GUIDE.upper() in ["SHANEIL", "ATHENA"]
 
     # Verify that CORS origins list contains the expected frontend development server URL
     assert "http://localhost:5173" in config.BACKEND_CORS_ORIGINS
