@@ -33,6 +33,12 @@
     2. **Player Name Input (50% / 50% Split)**: Left 50% holds the streamlined Trainer Registration Card with character counter (`0 / 20 characters`) and `Press ↵ ENTER to Confirm`; right 50% gives open stage to the guide sprite.
     3. **Starter Monster Selection (68% / 32% Split)**: Left 68% features the 3 starter cards (**Bulbasaur**, **Charmander**, **Squirtle**) with click-to-highlight, pulsing `★ SELECTED` pill, highlighted player name badge in header & dialogue, and <kbd>Enter</kbd> key confirmation without button clutter; right 32% hosts the guide sprite with zero card overlap. Persistence via `POST /api/v1/onboarding/register`.
     4. **Registration Confirmed (50% / 50% Split)**: Left 50% displays the confirmed Trainer Card summary with highlighted player name badge; right 50% hosts the Guide celebrating registration completion.
+- **Lesson 4 (Smart Pokédex & ChromaDB Vector Memory)**:
+  - Accessible via `🔍 Open Smart Pokédex` from the Onboarding Complete or Title screen.
+  - Features real-time conceptual search input with suggestion chips (e.g., *"fast electric mouse good against water flyers"*, *"fiery lizard with high special attack"*, *"heavy armored water turtle"*).
+  - Displays calibrated cosine similarity match badges (`89% Match 🟢`), elemental type pills, base stats preview (`HP`, `ATK`, `DEF`, `SPD`), and species lore snippet.
+  - Domain context enrichment with `ELEMENTAL_TYPE_ADVANTAGES` and `CANONICAL_MONSTER_GENERA` ensures asymmetric tactical queries accurately rank counter-types as top candidates.
+  - `POST /api/v1/pokedex/seed` dynamically harvests and batch indexes tournament monsters from PokéAPI into persistent ChromaDB storage (`backend/data/chroma`).
 - **Battle Mode UI Conventions (Classic GBA Style)**:
   - **Opponent HUD (Top-Left)**: Name (`Pidgey`), Level (`Lv 5`), and green HP bar.
   - **Opponent Front Sprite (Top-Right)**: Perched on circular green grassy platform.

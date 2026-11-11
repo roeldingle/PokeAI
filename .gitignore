@@ -33,3 +33,9 @@ backend/.env
 *.swo
 .DS_Store
 Thumbs.db
+
+# Data & Vector Storage (ChromaDB SQLite & Segment Indices)
+backend/data/
+data/
+*.sqlite3
+

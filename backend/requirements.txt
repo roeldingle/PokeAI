@@ -22,3 +22,6 @@ langchain-ollama>=0.2.0
 langchain-groq>=0.2.0
 # Channel 3: Google Gemini SDK integration for deep strategic backup
 langchain-google-genai>=2.0.0
+# === AI Vector Memory & Semantic Storage (Lesson 04) ===
+# Local embedded vector database for semantic Pokédex similarity search
+chromadb>=0.5.0
