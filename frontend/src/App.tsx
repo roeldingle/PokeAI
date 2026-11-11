@@ -16,6 +16,7 @@ import { fetchGameGuideGreeting } from "./services/aiGatewayService";
 import type { GameMetadataResponse } from "./types/metadata";
 import type { TrainerProfileResponse } from "./types/onboarding";
 import type { LLMResponseEnvelope } from "./types/aiGateway";
+import { PokedexSearchScreen } from "./components/screen/PokedexSearchScreen";
 
 type GameStage =
   | "TITLE_SCREEN"
@@ -23,7 +24,8 @@ type GameStage =
   | "NAME_INPUT"
   | "STARTER_SELECT"
   | "ONBOARDING_COMPLETE"
-  | "AI_GATEWAY_TESTBENCH";
+  | "AI_GATEWAY_TESTBENCH"
+  | "POKEDEX_SEARCH";
 
 export const App: React.FC = () => {
   const [currentStage, setCurrentStage] = useState<GameStage>("TITLE_SCREEN");
@@ -209,6 +211,13 @@ export const App: React.FC = () => {
                       📡 Open Gateway Testbench
                     </ButtonUI>
                     <ButtonUI
+                      onClick={() => setCurrentStage("POKEDEX_SEARCH")}
+                      variant="action"
+                      showArrowPointer="right"
+                    >
+                      🔍 Open Smart Pokédex
+                    </ButtonUI>
+                    <ButtonUI
                       onClick={() => setCurrentStage("TITLE_SCREEN")}
                       variant="default"
                       showArrowPointer="left"
@@ -249,7 +258,16 @@ export const App: React.FC = () => {
           onBackToPrevious={() => setCurrentStage("ONBOARDING_COMPLETE")}
         />
       )}
+
+      {/* Stage 6: Smart Pokédex Screen (Lesson 04 / Storyboard Screen 2) */}
+      {currentStage === "POKEDEX_SEARCH" && (
+        <PokedexSearchScreen
+          onBackToPrevious={() => setCurrentStage("ONBOARDING_COMPLETE")}
+        />
+      )}
+
     </div>
+    
   );
 };
 

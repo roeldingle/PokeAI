@@ -15,6 +15,24 @@
 - **Autonomous Gym Leader AI Agent**: Non-stationary threat calibration, dynamic persona taunts, and memory.
 - **Real-Time Token Streaming**: Server-Sent Events (SSE) powering the stadium's top LED ticker tape play-by-play announcer.
 
+### 📚 Curriculum Progress
+
+| Lesson | Topic | Status |
+| :--- | :--- | :--- |
+| **Lesson 00** | Fullstack Foundations, CORS & Stadium Health | ✅ Completed |
+| **Lesson 01** | Visual Novel Onboarding & Starter Monster Selection | ✅ Completed |
+| **Lesson 02** | Three-Channel Resilient LLM Gateway (Ollama, Groq, Gemini) | ✅ Completed |
+| **Lesson 03** | Asynchronous PokéAPI Client & Structured Ingestion | ✅ Completed |
+| **Lesson 04** | ChromaDB Vector Memory, Domain Enrichment & Smart Pokédex | ✅ Completed |
+| **Lesson 05** | Classic GBA Battle Arena & Deterministic Damage Engine | ⏳ Up Next |
+| **Lesson 06** | 5-Turn Battle Clock, `TEAM` Swap & +1% Stat Progression | ⏳ Pending |
+| **Lesson 07** | Catch Pokémon Roulette Phase (Turn 5 Limit) | ⏳ Pending |
+| **Lesson 08** | `ASK GUIDE` Battle Whisperer (Dynamic In-Context RAG) | ⏳ Pending |
+| **Lesson 09** | Autonomous Gym Leader AI Agent & Dynamic Threat Calibration | ⏳ Pending |
+| **Lesson 10** | Live Stadium Announcer (SSE Streaming Ticker Tape) | ⏳ Pending |
+| **Lesson 11** | Production Hardening, CI/CD, Containerization & Evals | ⏳ Pending |
+
+
 ---
 
 ## 📂 Project Structure
