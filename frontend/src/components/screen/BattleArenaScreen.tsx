@@ -176,8 +176,10 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
         selectedMove.move_id
       );
 
+      // Determine turn initiative using deterministic speed stat comparison
+      // (Prevents name collision in mirror matches such as recruited Pidgey vs wild Pidgey)
       const isPlayerFirst =
-        resolutionResult.first_action_resolution.attacker_name === playerMonster?.pokemon_name;
+        (playerMonster?.speed_stat ?? 0) >= (opponentMonster?.speed_stat ?? 0);
 
       if (isPlayerFirst) {
         // Step 1: Player lunges forward
@@ -372,8 +374,10 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
 
       // Handle match conclusion and trigger Game Guide post-match debrief
       if (resolutionResult.is_battle_concluded) {
+        // Check actual combatant HP rather than species name to prevent mirror-match collision (e.g. Pidgey vs Pidgey)
         const isVictor =
-          resolutionResult.victorious_monster_name === playerMonster?.pokemon_name;
+          resolutionResult.opponent_monster.current_health_points === 0 &&
+          resolutionResult.player_monster.current_health_points > 0;
         const isTurnLimitReached = Boolean(resolutionResult.is_turn_limit_reached);
 
         if (isVictor && resolutionResult.progression_update) {
