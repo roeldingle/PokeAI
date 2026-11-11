@@ -18,6 +18,7 @@ import type { TrainerProfileResponse } from "./types/onboarding";
 import type { LLMResponseEnvelope } from "./types/aiGateway";
 import { PokedexSearchScreen } from "./components/screen/PokedexSearchScreen";
 import { BattleArenaScreen } from "./components/screen/BattleArenaScreen";
+import { EvalsInspectorScreen } from "./components/screen/EvalsInspectorScreen";
 
 type GameStage =
   | "TITLE_SCREEN"
@@ -27,7 +28,8 @@ type GameStage =
   | "ONBOARDING_COMPLETE"
   | "AI_GATEWAY_TESTBENCH"
   | "POKEDEX_SEARCH"
-  | "BATTLE_ARENA";
+  | "BATTLE_ARENA"
+  | "EVALS_INSPECTOR";
 
 export const App: React.FC = () => {
   const [currentStage, setCurrentStage] = useState<GameStage>("TITLE_SCREEN");
@@ -227,6 +229,13 @@ export const App: React.FC = () => {
                       📡 Gateway Testbench
                     </ButtonUI>
                     <ButtonUI
+                      onClick={() => setCurrentStage("EVALS_INSPECTOR")}
+                      variant="default"
+                      showArrowPointer="right"
+                    >
+                      📊 AI QA &amp; Evals Inspector
+                    </ButtonUI>
+                    <ButtonUI
                       onClick={() => setCurrentStage("TITLE_SCREEN")}
                       variant="default"
                       showArrowPointer="left"
@@ -284,6 +293,13 @@ export const App: React.FC = () => {
           }
           gameGuideName={dynamicGuideName}
           onExitBattle={() => setCurrentStage("ONBOARDING_COMPLETE")}
+        />
+      )}
+
+      {/* Stage 8: AI QA & Evals Inspector (Lesson 11 / Storyboard Screen 7) */}
+      {currentStage === "EVALS_INSPECTOR" && (
+        <EvalsInspectorScreen
+          onBackToPrevious={() => setCurrentStage("ONBOARDING_COMPLETE")}
         />
       )}
 
