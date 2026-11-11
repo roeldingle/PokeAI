@@ -154,3 +154,25 @@ export interface CatchRouletteOutcome {
   updated_party_pool?: TrainerPartyPoolState | null;
 }
 
+// Lesson 8: Request payload for the 'ASK GUIDE' Tactical RAG Whisperer
+export interface CoachTacticalAdviceRequest {
+  battle_session_id: string;
+  custom_trainer_question?: string | null;
+}
+
+// Lesson 8: Tactical advice envelope returned by CoachRAGService
+export interface CoachTacticalAdviceResponse {
+  battle_session_id: string;
+  game_guide_name: string;
+  recommended_action_name: string;
+  recommended_move_id?: number | null;
+  tactical_justification: string;
+  confidence_rating: number;
+  retrieved_lore_context: string;
+  elemental_matchup_summary: string;
+  active_provider_name: string;
+  model_identifier: string;
+  execution_latency_milliseconds: number;
+}
+
+

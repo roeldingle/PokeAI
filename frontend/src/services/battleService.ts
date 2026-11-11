@@ -7,6 +7,7 @@
  * - swapActivePartyMonster: Executes pre-Turn 1 party swap (Lesson 6).
  * - fetchTrainerPartyPool: Fetches trainer's recruited party roster and progression stats.
  * - spinCatchRoulette: Executes Lesson 7 overtime capture wheel when Turn 5 expires.
+ * - fetchCoachTacticalAdvice: Requests Lesson 8 RAG tactical advice from the Game Guide.
  */
 
 import type {
@@ -14,6 +15,7 @@ import type {
   BattleTurnResolutionResponse,
   CatchRouletteOutcome,
   CatchRouletteSpinRequest,
+  CoachTacticalAdviceResponse,
   TeamSwapResponse,
   TrainerPartyPoolState,
 } from "../types/battle";
@@ -177,6 +179,35 @@ export async function spinCatchRoulette(
     const errorPayload = await response.json().catch(() => ({}));
     throw new Error(
       errorPayload.detail || `Catch roulette failed (Status ${response.status})`
+    );
+  }
+
+  return response.json();
+}
+
+/**
+ * Lesson 8: Requests real-time RAG tactical coaching advice from the Game Guide.
+ */
+export async function fetchCoachTacticalAdvice(
+  battleSessionId: string,
+  customTrainerQuestion?: string
+): Promise<CoachTacticalAdviceResponse> {
+  const response = await fetch(`${BACKEND_API_BASE_URL}/api/v1/battle/coach`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      battle_session_id: battleSessionId,
+      custom_trainer_question: customTrainerQuestion ?? null,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorPayload = await response.json().catch(() => ({}));
+    throw new Error(
+      errorPayload.detail ||
+        `Failed to fetch tactical coach advice (Status ${response.status})`
     );
   }
 

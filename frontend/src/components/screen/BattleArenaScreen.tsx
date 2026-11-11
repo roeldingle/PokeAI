@@ -16,7 +16,9 @@ import { ProviderStatusBadge } from "../ui/ProviderStatusBadge";
 import { GameGuideDialogBox } from "../ui/GameGuideDialogBox";
 import { TeamSwapModal } from "../ui/TeamSwapModal";
 import { CatchRouletteModal } from "../ui/CatchRouletteModal";
+import { TacticalGuideOverlay } from "../ui/TacticalGuideOverlay";
 import {
+  fetchCoachTacticalAdvice,
   initiateBattleMatch,
   resolveBattleTurn,
   swapActivePartyMonster,
@@ -26,6 +28,7 @@ import type {
   BattleSessionData,
   BattleTurnResolutionResponse,
   CatchRouletteOutcome,
+  CoachTacticalAdviceResponse,
   PokemonMoveSlot,
   TrainerPartyPoolState,
   VictoryProgressionUpdateResponse,
@@ -63,6 +66,13 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
     useState<boolean>(false);
   const [catchRouletteOutcome, setCatchRouletteOutcome] =
     useState<CatchRouletteOutcome | null>(null);
+
+  // Lesson 8: 'ASK GUIDE' Tactical RAG Whisperer State
+  const [isTacticalGuideOpen, setIsTacticalGuideOpen] = useState<boolean>(false);
+  const [isLoadingTacticalAdvice, setIsLoadingTacticalAdvice] =
+    useState<boolean>(false);
+  const [coachTacticalAdvice, setCoachTacticalAdvice] =
+    useState<CoachTacticalAdviceResponse | null>(null);
 
   // Combat loop & view states
   const [isMoveGridActive, setIsMoveGridActive] = useState<boolean>(false);
@@ -109,6 +119,8 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
       setIsTeamSwapModalOpen(false);
       setIsCatchRouletteModalOpen(false);
       setCatchRouletteOutcome(null);
+      setIsTacticalGuideOpen(false);
+      setCoachTacticalAdvice(null);
       setProgressionReward(null);
 
       // Use the trainer's current lead monster if available, otherwise selectedPokemonId
@@ -456,6 +468,42 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
     setTimeout(() => {
       setShowPostBattleGuide(true);
     }, 500);
+  };
+
+  // Handle Lesson 8 'ASK GUIDE' Tactical RAG Coach request
+  const handleAskGuide = async () => {
+    if (!activeSession || isTurnResolving) return;
+    setIsTacticalGuideOpen(true);
+    setIsLoadingTacticalAdvice(true);
+    try {
+      const adviceResponse = await fetchCoachTacticalAdvice(
+        activeSession.battle_session_id
+      );
+      setCoachTacticalAdvice(adviceResponse);
+      setBattleNarrationText(
+        `💡 Coach ${adviceResponse.game_guide_name}: Use ${adviceResponse.recommended_action_name} (${Math.round(adviceResponse.confidence_rating * 100)}% confidence)!`
+      );
+    } catch (err) {
+      setBattleNarrationText(
+        err instanceof Error
+          ? err.message
+          : "Unable to query Tactical RAG Coach."
+      );
+    } finally {
+      setIsLoadingTacticalAdvice(false);
+    }
+  };
+
+  // Execute the recommended move directly from the TacticalGuideOverlay
+  const handleExecuteRecommendedMove = (recommendedMoveId: number) => {
+    if (!playerMonster) return;
+    const targetSlot = playerMonster.move_slots.find(
+      (slot) => slot.move_id === recommendedMoveId && slot.is_unlocked
+    );
+    setIsTacticalGuideOpen(false);
+    if (targetSlot) {
+      handleExecuteMove(targetSlot);
+    }
   };
 
   // Compute HP percentage for health bars
@@ -920,7 +968,8 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
           style={{
             background: "#1e293b",
             borderTop: "4px solid #0f172a",
-            padding: showPostBattleGuide ? "0 0" : "18px 28px",
+            padding:
+              showPostBattleGuide || isTacticalGuideOpen ? "0 0" : "18px 28px",
             position: "relative",
             zIndex: 10,
           }}
@@ -1130,6 +1179,17 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
                 </ButtonUI>
               </div>
             </div>
+          ) : isTacticalGuideOpen ? (
+            /* Lesson 8 'ASK GUIDE' Right-Side Tactical RAG Coach Overlay */
+            <TacticalGuideOverlay
+              isOpen={isTacticalGuideOpen}
+              isLoadingAdvice={isLoadingTacticalAdvice}
+              trainerName={trainerName}
+              gameGuideName={gameGuideName}
+              tacticalAdvice={coachTacticalAdvice}
+              onExecuteRecommendedMove={handleExecuteRecommendedMove}
+              onReturnToActionMenu={() => setIsTacticalGuideOpen(false)}
+            />
           ) : (
             /* Active Combat Control Panel: Dialogue + 2x2 Menu */
             <div
@@ -1209,13 +1269,10 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
                   </ButtonUI>
 
                   <ButtonUI
-                    onClick={() =>
-                      setBattleNarrationText(
-                        "Coach Guide: Scratch deals steady physical damage! (Tactical RAG unlocks in Lesson 8)"
-                      )
-                    }
+                    onClick={handleAskGuide}
                     variant="default"
                     showArrowPointer="right"
+                    disabled={isTurnResolving}
                   >
                     ASK GUIDE
                   </ButtonUI>

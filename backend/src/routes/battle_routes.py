@@ -19,9 +19,14 @@ from src.schemas.catch_schema import (
     CatchRouletteSpinRequest,
     CatchRouletteOutcome,
 )
+from src.schemas.coach_schema import (
+    CoachTacticalAdviceRequest,
+    CoachTacticalAdviceResponse,
+)
 from src.services.battle_engine import battle_engine_service
 from src.services.battle_progression_service import battle_progression_service
 from src.services.catch_roulette_service import catch_roulette_service
+from src.services.coach_rag_service import coach_rag_service
 
 # Initialize dedicated battle router under /api/v1/battle
 battle_router = APIRouter(
@@ -195,4 +200,69 @@ async def spin_catch_roulette(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Roulette spin calculation failed: {str(calculation_error)}",
         )
+
+
+@battle_router.post(
+    "/coach",
+    response_model=CoachTacticalAdviceResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Request Lesson 8 RAG tactical coaching advice from the Game Guide",
+)
+async def request_coach_tactical_advice(
+    advice_request: CoachTacticalAdviceRequest,
+) -> CoachTacticalAdviceResponse:
+    """
+    Executes the Lesson 8 'ASK GUIDE' Tactical Whisperer RAG pipeline:
+    1. Queries ChromaDB vector memory for active opponent lore and weaknesses.
+    2. Computes deterministic elemental effectiveness across unlocked player moves.
+    3. Synthesizes an in-character tactical recommendation via the Resilient LLM Gateway.
+    """
+    try:
+        tactical_advice = await coach_rag_service.generate_tactical_advice(
+            battle_session_id=advice_request.battle_session_id,
+            custom_trainer_question=advice_request.custom_trainer_question,
+            use_llm_gateway=advice_request.use_llm_gateway,
+        )
+        return tactical_advice
+    except ValueError as not_found_error:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(not_found_error),
+        )
+    except Exception as coaching_error:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Tactical RAG coach error: {str(coaching_error)}",
+        )
+
+
+@battle_router.get(
+    "/coach/{battle_session_id}",
+    response_model=CoachTacticalAdviceResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Fetch Lesson 8 RAG tactical advice for a battle session by ID",
+)
+async def get_coach_tactical_advice_by_session(
+    battle_session_id: str,
+    use_llm_gateway: bool = True,
+) -> CoachTacticalAdviceResponse:
+    """
+    GET convenience endpoint for retrieving RAG tactical advice for an active battle session.
+    """
+    try:
+        return await coach_rag_service.generate_tactical_advice(
+            battle_session_id=battle_session_id,
+            use_llm_gateway=use_llm_gateway,
+        )
+    except ValueError as not_found_error:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(not_found_error),
+        )
+    except Exception as coaching_error:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Tactical RAG coach error: {str(coaching_error)}",
+        )
+
 
