@@ -28,10 +28,10 @@ async def get_stadium_game_metadata() -> GameMetadataResponse:
     """
     # Construct the validated response using values loaded directly from the core configuration
     return GameMetadataResponse(
-        application_environment=config.application_environment,
-        game_version=config.game_version,
-        project_learning_goal=config.project_learning_goal,
-        game_title=config.game_title,
-        game_description=config.game_description,
-        game_guide_name=config.game_guide_name,
+        application_environment=config.APP_ENV,
+        game_version=config.VERSION,
+        project_learning_goal=config.PROJECT_GOAL,
+        game_title=config.GAME_TITLE,
+        game_description=config.GAME_DESCRIPTION,
+        game_guide_name=config.GAME_GUIDE,
     )

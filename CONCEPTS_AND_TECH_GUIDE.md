@@ -10,14 +10,14 @@
 | Lesson | Core Theme | The Big Question Answered |
 | :--- | :--- | :--- |
 | **[Lesson 0](#lesson-0-the-academy-welcome-desk--full-stack-setup-env-config--landing-screen)** | Full-Stack Setup & `.env` Config | *"How do a React game screen and a Python server load settings like game title and version before starting?"* |
-| **[Lesson 1](#lesson-1-meeting-your-game-guide--right-side-shaneil-onboarding--starters)** | Game Guide JRPG Onboarding | *"How does our Game Guide Shaneil introduce the academy, ask for your name, and register your starter monster?"* |
+| **[Lesson 1](#lesson-1-meeting-your-game-guide--right-side-game-guide-onboarding--starters)** | Game Guide JRPG Onboarding | *"How does our Game Guide introduce the academy, ask for your name, and register your starter monster?"* |
 | **[Lesson 2](#lesson-2-the-three-channel-radio--resilient-ai-gateway)** | Resilient Gateway | *"What happens when an AI model crashes or gets overwhelmed mid-battle?"* |
 | **[Lesson 3](#lesson-3-the-pokemon-researchers-telescope--async-pokeapi-ingestion)** | Async External APIs | *"How do we fetch live monster data from the web asynchronously without freezing the game screen?"* |
 | **[Lesson 4](#lesson-4-the-smart-pokedex--chromadb-vector-memory)** | Vector Search & RAG | *"How does a computer search for ideas and vibes (like 'fiery lizard') instead of exact spelling?"* |
 | **[Lesson 5](#lesson-5-the-classic-arena-floor--retro-gba-layout--deterministic-damage)** | Classic GBA Arena Engine | *"How do we build a classic retro battle arena with deterministic elemental damage that never hallucinates?"* |
 | **[Lesson 6](#lesson-6-the-strict-5-turn-clock-team-swap--1-stat-mastery-progression)** | 5-Turn Rules & +1% Stat Growth | *"How do AI agents adapt when monsters gain +1% stats after every victory and time is limited to 5 turns?"* |
 | **[Lesson 7](#lesson-7-the-pokeball-roulette-wheel--turn-5-catch-roulette-phase)** | Catch Roulette Probabilities | *"What happens when Turn 5 expires without a knockout? How do probability wheels work in game design?"* |
-| **[Lesson 8](#lesson-8-the-ask-guide-battle-whisperer--tactical-dynamic-rag-overlay)** | In-Context Learning (RAG) | *"How do we give the player instant, expert advice from Shaneil without retraining the AI?"* |
+| **[Lesson 8](#lesson-8-the-ask-guide-battle-whisperer--tactical-dynamic-rag-overlay)** | In-Context Learning (RAG) | *"How do we give the player instant, expert advice from the Game Guide without retraining the AI?"* |
 | **[Lesson 9](#lesson-9-the-autonomous-gym-leader--agentic-loops--dynamic-threat-calibration)** | Autonomous Agents & Personas | *"How do we build an opponent that thinks ahead, reacts to +1% stat threats, and taunts in character?"* |
 | **[Lesson 10](#lesson-10-the-live-stadium-announcer--multi-agent-coordination--sse-streaming)** | Multi-Agent & SSE Streaming | *"How do two AIs talk to each other and stream play-by-play stadium commentary with zero lag?"* |
 | **[Lesson 11](#lesson-11-the-arena-in-a-box--ai-evals-guardrails-docker--cicd)** | Production Evals & Docker CI/CD | *"How do we test AI intelligence automatically with 20 scenarios and package everything into 1-click Docker?"* |
@@ -30,7 +30,7 @@
 Before plugging in artificial intelligence, build a rock-solid telephone line between your visual game screen (React/TypeScript) and your Python configuration engine (`backend/.env` -> `src/core/config.py` -> FastAPI) so the game title, version, and mission statement display cleanly on the landing screen.
 
 ### 0.2 Tech Tools & Plain-English Purpose
-- **`backend/.env` & `src/core/config.py` (`python-dotenv`)**: The game's master control panel. Instead of hardcoding the game title (`GAME_TITLE="PokeAI"`), version (`VERSION="0.1.0"`), project goal, or guide name (`GAME_GUIDE="Shaneil"`) across twenty different files, we store them in `.env`, load them via `core/config.py`, and send them to the frontend automatically.
+- **`backend/.env` & `src/core/config.py` (`python-dotenv`)**: The game's master control panel. Instead of hardcoding the game title (`GAME_TITLE="PokeAI"`), version (`VERSION="0.1.0"`), project goal, or guide name (`GAME_GUIDE="Shaneil"`, dynamically loaded from `.env`) across twenty different files, we store them in `.env`, load them via `core/config.py`, and send them to the frontend automatically.
 - **Python 3.12 & FastAPI**: The high-speed backend server (`src/main.py`) that listens for requests from the browser and replies with clean data envelopes.
 - **CORS (Cross-Origin Resource Sharing)**: A security guest list (`BACKEND_CORS_ORIGINS`) on the Python server (`localhost:8000`) that explicitly allows our React frontend (`localhost:5173`) to talk to it.
 - **React 18 + TypeScript + Vite**: The frontend stage that renders the glowing retro arcade landing screen and detects keyboard input.
@@ -47,10 +47,10 @@ A clean landing screen displaying the game title, version, and description fetch
 
 ---
 
-## Lesson 1: Meeting Your Game Guide — Right-Side Shaneil Onboarding & Starters
+## Lesson 1: Meeting Your Game Guide — Right-Side Game Guide Onboarding & Starters
 
 ### 1.1 The Big Idea in One Sentence
-Introduce your persistent JRPG Game Guide (**Shaneil**) on the right side of the screen, have her ask for your Trainer Name, and present the 3 starter monsters (**Bulbasaur**, **Charmander**, **Squirtle**) to register your profile.
+Introduce your persistent JRPG Game Guide (configured dynamically via `.env`) on the right side of the screen, have the guide ask for your Trainer Name, and present the 3 starter monsters (**Bulbasaur**, **Charmander**, **Squirtle**) to register your profile.
 
 ### 1.2 Tech Tools & Plain-English Purpose
 - **Reusable Guide Overlay (`GameGuideDialogBox.tsx`)**: A JRPG character portrait and nameplate anchored on the **RIGHT side** above the dialogue box with a `[Press A to Next ▸]` handler. This exact component will be reused as your AI Battle Coach in future lessons!
@@ -58,13 +58,13 @@ Introduce your persistent JRPG Game Guide (**Shaneil**) on the right side of the
 - **REST Profile Registration**: A `POST /api/v1/onboarding/register` endpoint in FastAPI that saves the trainer name and chosen starter in backend state.
 
 ### 1.3 The Battle Metaphor: Your Personal Academy Coach
-Standing on the **right side** of the Academy reception desk is **Shaneil**, your personal guide and future battle analyst:
-1. She introduces herself warmly: *"Welcome to the PokeAI Academy! I'm Shaneil, and I'll be guiding you all the way to becoming a Champion!"*
-2. She hands you a registration clipboard: *"What is your name, Trainer?"* You type your name and press `[A]`.
-3. She smiles and places three Pokéballs on the table: **Bulbasaur (Grass 🌱)**, **Charmander (Fire 🔥)**, and **Squirtle (Water 💧)**. When you pick Charmander, she confirms your choice and hands you your Trainer Card!
+Standing on the **right side** of the Academy reception desk is your Game Guide, your personal coach and future battle analyst:
+1. The Game Guide introduces themselves warmly: *"Welcome to the PokeAI Academy! I'll be guiding you all the way to becoming a Champion!"*
+2. The Guide hands you a registration clipboard: *"What is your name, Trainer?"* You type your name and press `[A]`.
+3. The Guide smiles and places three Pokéballs on the table: **Bulbasaur (Grass 🌱)**, **Charmander (Fire 🔥)**, and **Squirtle (Water 💧)**. When you pick Charmander, the Guide confirms your choice and hands you your Trainer Card!
 
 ### 1.4 What You See on Screen When It Works
-Guide Shaneil's signature right-side portrait, typing dialogues with `[Press A to Next ▸]`, an interactive name input field, and 3 clickable starter monster cards that save your profile via FastAPI.
+The Game Guide's signature right-side portrait, typing dialogues with `[Press A to Next ▸]`, an interactive name input field, and 3 clickable starter monster cards that save your profile via FastAPI.
 
 ---
 
@@ -87,7 +87,7 @@ You wear a tactical headset with three frequencies:
 If Channel 1 gets unplugged, your headset silently switches to Channel 2 in milliseconds without buzzing or crashing.
 
 ### 2.4 What You See on Screen When It Works
-A connection badge in the HUD showing the active provider and latency (e.g. `Groq | 118ms`). Shaneil speaks her first live AI-generated sentence, welcoming you by name and commenting on your starter!
+A connection badge in the HUD showing the active provider and latency (e.g. `Groq | 118ms`). The Game Guide speaks their first live AI-generated sentence, welcoming you by name and commenting on your starter!
 
 ---
 
@@ -196,20 +196,20 @@ An animated roulette popup at the end of Turn 5 that spins across the 4 ball tie
 ## Lesson 8: The `ASK GUIDE` Battle Whisperer — Tactical Dynamic RAG Overlay
 
 ### 8.1 The Big Idea in One Sentence
-Add an **`ASK GUIDE`** button to your classic 2x2 battle menu that slides in Guide Shaneil on the right side to consult your ChromaDB vector memory and whisper winning tactics.
+Add an **`ASK GUIDE`** button to your classic 2x2 battle menu that slides in the Game Guide on the right side to consult your ChromaDB vector memory and whisper winning tactics.
 
 ### 8.2 Tech Tools & Plain-English Purpose
 - **Dynamic In-Context Learning (RAG)**: Injects live battle state (player HP, opponent type) plus retrieved vector lore into a prompt.
-- **Right-Side Guide Overlay (`TacticalGuideOverlay.tsx`)**: Reuses Guide Shaneil's portrait and dialogue box anchored on the right side, pausing the battle cleanly.
+- **Right-Side Guide Overlay (`TacticalGuideOverlay.tsx`)**: Reuses the Game Guide's portrait and dialogue box anchored on the right side, pausing the battle cleanly.
 
 ### 8.3 The Battle Metaphor: The Coach in the Dugout
 Facing an unfamiliar opponent, you tap **`ASK GUIDE`**:
-1. Shaneil slides in on the right side with her open tournament handbook.
+1. The Game Guide slides in on the right side with the open tournament handbook.
 2. *"Pidgey is Normal/Flying type! Your Charmander's Ember deals neutral damage, but Scratch targets Pidgey's low physical defense! Watch out for Gust!"*
-3. You press `[A]`, Shaneil slides back, and you execute the recommended move!
+3. You press `[A]`, the Game Guide slides back, and you execute the recommended move!
 
 ### 8.4 What You See on Screen When It Works
-Clicking `ASK GUIDE` smoothly opens Shaneil's right-side overlay with clear tactical recommendations backed by vector memory.
+Clicking `ASK GUIDE` smoothly opens the Game Guide's right-side overlay with clear tactical recommendations backed by vector memory.
 
 ---
 

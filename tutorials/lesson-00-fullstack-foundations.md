@@ -8,7 +8,7 @@
 
 ## 1. Lesson Overview & Architecture
 
-In this foundational lesson, we establish the stadium grounds for **PokeAI Arena**. Before our Game Guide **Shaneil** can step into the coaching box or our AI battle agents can trade blows, we must construct a rock-solid, type-safe full-stack communication bridge between our Python 3.12 (FastAPI) arena backend and our React 18 / TypeScript (Vite) battle client.
+In this foundational lesson, we establish the stadium grounds for **PokeAI Arena**. Before our Game Guide can step into the coaching box or our AI battle agents can trade blows, we must construct a rock-solid, type-safe full-stack communication bridge between our Python 3.12 (FastAPI) arena backend and our React 18 / TypeScript (Vite) battle client.
 
 By the end of this lesson, you will have a live retro Game Boy Advance landing screen dynamically loading stadium metadata (`GAME_TITLE`, `VERSION`, `PROJECT_GOAL`, `GAME_DESCRIPTION`, `GAME_GUIDE`) directly from an isolated `.env` configuration file via a strictly validated REST endpoint.
 
@@ -136,7 +136,7 @@ class GameMetadataResponse(BaseModel):
     project_learning_goal: str = Field(..., description="High-level pedagogical mission statement")
     game_title: str = Field(..., description="Title of the game: PokeAI")
     game_description: str = Field(..., description="Tagline description of the game experience")
-    game_guide_name: str = Field(..., description="Name of the game guide: Shaneil")
+    game_guide_name: str = Field(..., description="Name of the game guide loaded dynamically from environment")
 ```
 
 ### Step 3.3: Connecting the Frontend Interface & Reusable UI Components

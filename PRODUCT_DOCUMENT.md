@@ -73,14 +73,14 @@ PokeAI (PokeAI Monorepo)
 │   └── tests/                              # Vitest component & hook tests
 ├── tutorials/                              # Step-by-step markdown tutorial guides
 │   ├── lesson-00-foundation-and-env.md     # L0: Monorepo Setup, FastAPI <-> React & .env config
-│   ├── lesson-01-guide-and-starters.md     # L1: Right-Side Guide Shaneil, Name Input & 3 Starters
-│   ├── lesson-02-resilient-llm-gateway.md  # L2: Awakening Shaneil's AI Brain (Ollama/Groq/Gemini)
+│   ├── lesson-01-guide-and-starters.md     # L1: Right-Side Game Guide, Name Input & 3 Starters
+│   ├── lesson-02-resilient-llm-gateway.md  # L2: Awakening the Game Guide's AI Brain (Ollama/Groq/Gemini)
 │   ├── lesson-03-pokeapi-client.md         # L3: Async PokeAPI Ingestion Service (httpx)
 │   ├── lesson-04-chromadb-vector-pokedex.md# L4: Dense Text Embeddings & Semantic Pokédex Search
 │   ├── lesson-05-gba-battle-engine.md      # L5: Classic GBA Battle Arena & Deterministic Combat
 │   ├── lesson-06-progression-and-team.md   # L6: 5-Turn Clock, TEAM Swap & +1% Stat Progression
 │   ├── lesson-07-catch-roulette.md         # L7: The Catch Pokémon Roulette Phase (4 Ball Tiers)
-│   ├── lesson-08-rag-coach-shaneil.md      # L8: The ASK GUIDE Tactical RAG Coach (Right Overlay)
+│   ├── lesson-08-rag-coach-guide.md        # L8: The ASK GUIDE Tactical RAG Coach (Right Overlay)
 │   ├── lesson-09-gym-leader-agent.md       # L9: Autonomous Opponent AI & Dynamic Threat Calibration
 │   ├── lesson-10-live-announcer-sse.md     # L10: Multi-Agent Live Stadium Announcer (SSE Streaming)
 │   └── lesson-11-evals-and-docker.md       # L11: Automated Pytest Evals, Guardrails & Docker CI/CD
@@ -134,16 +134,16 @@ Every tutorial guide inside `tutorials/lesson-XX-*.md` contains:
       project_learning_goal: str = Field(description="High-level pedagogical mission")
       game_title: str = Field(description="Title of the game: PokeAI")
       game_description: str = Field(description="Tagline description")
-      game_guide_name: str = Field(description="Name of the game guide: Shaneil")
+      game_guide_name: str = Field(description="Name of the game guide loaded dynamically from environment")
   ```
 - **Verification Gate**: `pytest backend/tests/test_config.py` passes 100%.
 
 ---
 
-#### Lesson 1: Right-Side Game Guide (`Shaneil`) JRPG Onboarding & Starter Selection
+#### Lesson 1: Right-Side Game Guide JRPG Onboarding & Starter Selection
 - **Pacing**: 2 backend files (`schemas/onboarding_schema.py`, `routes/onboarding_routes.py`), 1 test (`tests/test_onboarding.py`), 3 UI components (`GameGuideDialogBox.tsx`, `PlayerNameInputScreen.tsx`, `StarterSelectionScreen.tsx`).
 - **Concept**: Client-server state machines and reusable dialogue overlay architectures.
-- **MVP Deliverable**: Guide **Shaneil** welcomes the player on the **RIGHT side** of the dialogue box (`[Press A to Next ▸]`), prompts for Trainer Name input, presents 3 Starter Monsters (**Bulbasaur**, **Charmander**, **Squirtle**), and persists the Trainer Profile to backend memory.
+- **MVP Deliverable**: The **Game Guide** welcomes the player on the **RIGHT side** of the dialogue box (`[Press A to Next ▸]`), prompts for Trainer Name input, presents 3 Starter Monsters (**Bulbasaur**, **Charmander**, **Squirtle**), and persists the Trainer Profile to backend memory.
 - **Key Schema**:
   ```python
   class TrainerRegistrationRequest(BaseModel):
@@ -154,10 +154,10 @@ Every tutorial guide inside `tutorials/lesson-XX-*.md` contains:
 
 ---
 
-#### Lesson 2: Awakening Shaneil's AI Brain — Resilient LLM Gateway
+#### Lesson 2: Awakening the Game Guide's AI Brain — Resilient LLM Gateway
 - **Pacing**: 2 backend files (`core/llm_gateway.py`, `routes/health_routes.py`), 1 test (`tests/test_llm_gateway.py`), 1 UI component (`ProviderStatusBadge.tsx`).
 - **Concept**: The **Resilient Gateway Pattern** with automated failover: **Ollama (local)** -> **Groq (fast cloud)** -> **Gemini (reasoning cloud)**.
-- **MVP Deliverable**: Shaneil dynamically greets the newly registered trainer by name with personalized starter commentary; frontend HUD displays an active provider badge with live round-trip latency in milliseconds.
+- **MVP Deliverable**: The Game Guide dynamically greets the newly registered trainer by name with personalized starter commentary; frontend HUD displays an active provider badge with live round-trip latency in milliseconds.
 - **Key Schema**:
   ```python
   class LLMResponseEnvelope(BaseModel):
@@ -263,10 +263,10 @@ Every tutorial guide inside `tutorials/lesson-XX-*.md` contains:
 
 ### Phase 4: Multi-Agent Systems, Live Streaming & Production (Lessons 8 – 11)
 
-#### Lesson 8: `ASK GUIDE` Tactical Battle Whisperer (Shaneil Right-Side Overlay)
+#### Lesson 8: `ASK GUIDE` Tactical Battle Whisperer (Game Guide Right-Side Overlay)
 - **Pacing**: 2 backend files (`services/coach_rag_service.py`, `prompts/coach_prompts.py`), 1 test (`tests/test_coach_rag.py`), 1 UI component (`TacticalGuideOverlay.tsx`).
 - **Concept**: In-Context Learning (ICL) and Dynamic RAG under strict latency SLAs.
-- **MVP Deliverable**: Selecting `ASK GUIDE` from the 2x2 action menu pauses battle and slides in Guide **Shaneil's right-side overlay**; she queries ChromaDB for active opponent weaknesses and whispers winning counter-moves.
+- **MVP Deliverable**: Selecting `ASK GUIDE` from the 2x2 action menu pauses battle and slides in the Game Guide's right-side overlay; queries ChromaDB for active opponent weaknesses and whispers winning counter-moves.
 - **Key Schema**:
   ```python
   class CoachTacticalAdviceResponse(BaseModel):

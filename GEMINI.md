@@ -8,7 +8,7 @@
 - **`GAME_TITLE`**: `"PokeAI"`
 - **`GAME_DESCRIPTION`**: `"A turn-based monster battler engineered step-by-step to master AI Engineering principles."`
 - **`PROJECT_GOAL`**: `"AI Engineering Path while building a turn-based monster battler game."`
-- **`GAME_GUIDE`**: `"Shaneil"` (Default fallback in `config.py`: `"Athena"`)
+- **`GAME_GUIDE`**: Configured dynamically in `.env` (Fallback in `config.py`: `"Game Guide"`)
 - **`BACKEND_CORS_ORIGINS`**: `["http://localhost:5173", "http://127.0.0.1:5173"]`
 
 ## 2. UI & UX Conventions
@@ -59,4 +59,4 @@
     - **Silver Pokéball**: 75% catch chance
     - **Bronze Pokéball**: 60% catch chance
     - **Normal Pokéball**: 50% catch chance
-  - **`ASK GUIDE` Action**: Pauses battle and slides in Guide `Shaneil`'s signature right-side portrait, nameplate, and dialogue box overlay with RAG tactical advice.
+  - **`ASK GUIDE` Action**: Pauses battle and slides in the Game Guide's signature right-side portrait, dynamic nameplate, and dialogue box overlay with RAG tactical advice.

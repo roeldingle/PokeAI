@@ -1,24 +1,29 @@
 /**
  * App Root Component
- * Coordinates game stages: Title Screen -> Welcome -> Name Input -> Starter Select -> Registered
+ * Coordinates game stages: Title Screen -> Welcome -> Name Input -> Starter Select -> Registered -> AI Testbench
  */
 
 import React, { useEffect, useState } from "react";
 import { LandingTitleScreen } from "./components/screen/LandingTitleScreen";
 import { PlayerNameInputScreen } from "./components/screen/PlayerNameInputScreen";
 import { StarterSelectionScreen } from "./components/screen/StarterSelectionScreen";
+import { AIGatewayTestbenchScreen } from "./components/screen/AIGatewayTestbenchScreen";
 import { GameGuideDialogBox } from "./components/ui/GameGuideDialogBox";
 import { ButtonUI } from "./components/ui/ButtonUI";
+import { ProviderStatusBadge } from "./components/ui/ProviderStatusBadge";
 import { fetchStadiumGameMetadata } from "./services/metadataService";
+import { fetchGameGuideGreeting } from "./services/aiGatewayService";
 import type { GameMetadataResponse } from "./types/metadata";
 import type { TrainerProfileResponse } from "./types/onboarding";
+import type { LLMResponseEnvelope } from "./types/aiGateway";
 
 type GameStage =
   | "TITLE_SCREEN"
   | "GUIDE_WELCOME"
   | "NAME_INPUT"
   | "STARTER_SELECT"
-  | "ONBOARDING_COMPLETE";
+  | "ONBOARDING_COMPLETE"
+  | "AI_GATEWAY_TESTBENCH";
 
 export const App: React.FC = () => {
   const [currentStage, setCurrentStage] = useState<GameStage>("TITLE_SCREEN");
@@ -26,6 +31,10 @@ export const App: React.FC = () => {
   const [confirmedTrainerName, setConfirmedTrainerName] = useState<string>("");
   const [registeredTrainerProfile, setRegisteredTrainerProfile] =
     useState<TrainerProfileResponse | null>(null);
+
+  // Telemetry state for Lesson 02: AI Brain dynamic greeting
+  const [aiGreetingEnvelope, setAiGreetingEnvelope] = useState<LLMResponseEnvelope | null>(null);
+  const [isAiGreetingLoading, setIsAiGreetingLoading] = useState<boolean>(false);
 
   // Preload stadium metadata on mount so Guide name is always dynamic
   useEffect(() => {
@@ -46,8 +55,40 @@ export const App: React.FC = () => {
     };
   }, []);
 
-  // Dynamically resolved guide name from backend metadata
-  const dynamicGuideName: string = activeMetadata?.game_guide_name || "Shaneil";
+  // When registration is confirmed, awaken the Game Guide's AI Brain with dynamic greeting
+  useEffect(() => {
+    if (currentStage === "ONBOARDING_COMPLETE" && registeredTrainerProfile && !aiGreetingEnvelope) {
+      let isMounted = true;
+      setIsAiGreetingLoading(true);
+
+      async function triggerAIGreeting() {
+        try {
+          const envelope = await fetchGameGuideGreeting({
+            trainer_name: registeredTrainerProfile!.trainer_name,
+            selected_starter_id: registeredTrainerProfile!.selected_starter_monster.starter_pokemon_id,
+            starter_monster_name: registeredTrainerProfile!.selected_starter_monster.monster_name,
+            starter_elemental_type: registeredTrainerProfile!.selected_starter_monster.elemental_types[0] || "Normal",
+          });
+          if (isMounted) {
+            setAiGreetingEnvelope(envelope);
+          }
+        } catch (err) {
+          console.warn("Failed to generate AI greeting:", err);
+        } finally {
+          if (isMounted) {
+            setIsAiGreetingLoading(false);
+          }
+        }
+      }
+
+      triggerAIGreeting();
+      return () => {
+        isMounted = false;
+      };
+    }
+  }, [currentStage, registeredTrainerProfile, aiGreetingEnvelope]);
+
+  const dynamicGuideName: string = activeMetadata?.game_guide_name || "Athena";
 
   return (
     <div className="pokeai-root-container">
@@ -61,7 +102,7 @@ export const App: React.FC = () => {
         />
       )}
 
-      {/* Stage 1: Guide Shaneil Welcome (Visual Novel Style - No Welcome Card) */}
+      {/* Stage 1: Guide Welcome */}
       {currentStage === "GUIDE_WELCOME" && (
         <div className="pokeai-viewport">
           <div className="gba-screen-chassis">
@@ -78,18 +119,16 @@ export const App: React.FC = () => {
               </button>
             </header>
 
-            {/* Open Visual Novel Stage (Card Removed) */}
             <main className="landing-stage visual-novel-welcome-stage">
               <div className="welcome-hero-banner">
                 <span className="welcome-tag-pill">{activeMetadata?.game_title || "POKEAI"} ARENA TOURNAMENT</span>
-                <h1 className="welcome-hero-title">Meet Your Guide, {activeMetadata?.game_guide_name || "Shaneil"}</h1>
+                <h1 className="welcome-hero-title">Meet Your Guide, {dynamicGuideName}</h1>
                 <p className="welcome-hero-subtitle">
-                  Welcome to the stadium! {activeMetadata?.game_guide_name || "Shaneil"} is preparing your official registration.
+                  Welcome to the stadium! {dynamicGuideName} is preparing your official registration.
                 </p>
               </div>
             </main>
 
-            {/* Bottom JRPG Dialogue Box with Shaneil Rising from Behind */}
             <footer style={{ padding: "0 24px 20px 24px" }}>
               <GameGuideDialogBox
                 characterName={dynamicGuideName}
@@ -123,19 +162,26 @@ export const App: React.FC = () => {
           confirmedTrainerName={confirmedTrainerName}
           onRegistrationComplete={(profile) => {
             setRegisteredTrainerProfile(profile);
+            setAiGreetingEnvelope(null); // Reset for new greeting
             setCurrentStage("ONBOARDING_COMPLETE");
           }}
           onBackToNameInput={() => setCurrentStage("NAME_INPUT")}
         />
       )}
 
-      {/* Stage 4: Onboarding Complete & Ready for Lesson 2 (AI Gateway Brain) */}
+      {/* Stage 4: Registration Confirmed + Awakened AI Brain (Lesson 02) */}
       {currentStage === "ONBOARDING_COMPLETE" && registeredTrainerProfile && (
         <div className="pokeai-viewport">
           <div className="gba-screen-chassis">
             <header className="stadium-header-bar">
-              <span className="stadium-indicator">● LESSON 1 COMPLETE</span>
-              <span className="stadium-env-tag">TRAINER ID: {registeredTrainerProfile.trainer_registration_id}</span>
+              <span className="stadium-indicator">● LESSON 2: AI BRAIN AWAKENED</span>
+              <ProviderStatusBadge
+                activeProvider={aiGreetingEnvelope?.active_provider_name}
+                modelIdentifier={aiGreetingEnvelope?.model_identifier}
+                latencyMilliseconds={aiGreetingEnvelope?.execution_latency_milliseconds}
+                fallbackTriggered={aiGreetingEnvelope?.fallback_triggered}
+                isLoading={isAiGreetingLoading}
+              />
             </header>
 
             <main className="landing-stage name-input-split-stage">
@@ -154,9 +200,20 @@ export const App: React.FC = () => {
                     <strong>{registeredTrainerProfile.selected_starter_monster.monster_name}</strong> is registered and ready.
                   </p>
 
-                  <div style={{ marginTop: "24px" }}>
-                    <ButtonUI onClick={() => setCurrentStage("TITLE_SCREEN")} variant="default" showArrowPointer="left">
-                      Back to Title Screen
+                  <div style={{ marginTop: "24px", display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                    <ButtonUI
+                      onClick={() => setCurrentStage("AI_GATEWAY_TESTBENCH")}
+                      variant="action"
+                      showArrowPointer="right"
+                    >
+                      📡 Open Gateway Testbench
+                    </ButtonUI>
+                    <ButtonUI
+                      onClick={() => setCurrentStage("TITLE_SCREEN")}
+                      variant="default"
+                      showArrowPointer="left"
+                    >
+                      Title Screen
                     </ButtonUI>
                   </div>
                 </div>
@@ -167,13 +224,30 @@ export const App: React.FC = () => {
             <footer style={{ padding: "0 24px 20px 24px" }}>
               <GameGuideDialogBox
                 characterName={dynamicGuideName}
-                dialogueMessage={`Registration complete! You and ${registeredTrainerProfile.selected_starter_monster.monster_name} make a formidable team! Next up: Awakening my AI Brain in Lesson 2!`}
-                promptActionHint="[ Lesson 1 Complete ★ ]"
+                highlightedTerm={registeredTrainerProfile.trainer_name}
+                dialogueMessage={
+                  isAiGreetingLoading
+                    ? `Awakening AI radio channels to greet you...`
+                    : aiGreetingEnvelope?.generated_message_content ||
+                      `Registration complete! You and ${registeredTrainerProfile.selected_starter_monster.monster_name} make a formidable team!`
+                }
+                promptActionHint={
+                  aiGreetingEnvelope
+                    ? `[ Active: ${aiGreetingEnvelope.active_provider_name.toUpperCase()} | ⚡ ${aiGreetingEnvelope.execution_latency_milliseconds}ms ]`
+                    : "[ Awakening AI Brain... ]"
+                }
                 characterImagePlacement="right"
               />
             </footer>
           </div>
         </div>
+      )}
+
+      {/* Stage 5: Gateway Testbench Screen (Storyboard Screen 1) */}
+      {currentStage === "AI_GATEWAY_TESTBENCH" && (
+        <AIGatewayTestbenchScreen
+          onBackToPrevious={() => setCurrentStage("ONBOARDING_COMPLETE")}
+        />
       )}
     </div>
   );

@@ -11,7 +11,7 @@
 - **Resilient Multi-Provider LLM Gateway**: Automatic failover across local Ollama, fast cloud Groq, and reasoning cloud Google Gemini.
 - **RAG & Vector Embeddings**: ChromaDB semantic search over official monster lore and battle histories.
 - **Classic GBA 5-Turn Battle Arena**: Deterministic state machine, dynamic 4-move progression, EXP multipliers, and catch roulette probability phases.
-- **In-Context AI Battle Guide**: Right-side interactive coaching overlay with Guide **Shaneil**.
+- **In-Context AI Battle Guide**: Right-side interactive coaching overlay with the Game Guide (configured dynamically via `.env`).
 - **Autonomous Gym Leader AI Agent**: Non-stationary threat calibration, dynamic persona taunts, and memory.
 - **Real-Time Token Streaming**: Server-Sent Events (SSE) powering the stadium's top LED ticker tape play-by-play announcer.
 

@@ -148,14 +148,14 @@ When the user gives the command to begin a lesson (e.g., `Start Lesson 1`):
 | Lesson # | Milestone Focus | Core Engineering / AI Skill | Game Feature MVP | Pacing Target |
 | :--- | :--- | :--- | :--- | :--- |
 | **00** | Full-Stack Foundations & `.env` Config | Python 3.12 (FastAPI) <-> React/TS + Config | Landing Screen displaying `.env` metadata & "Press Any Key" | 3 files, 1 test (30 min) |
-| **01** | Right-Side Game Guide (`Shaneil`) Onboarding | JRPG Dialogue State Machine & Reusable Overlay | Guide Shaneil Welcome -> Trainer Name Input -> 3-Starter Selection | 4 files, 1 test (35 min) |
-| **02** | Resilient AI LLM Gateway | LLM Failovers (Ollama -> Groq -> Gemini) | Awakening Guide Shaneil's AI Brain + Latency HUD Badge | 3 files, 1 test (30 min) |
+| **01** | Right-Side Game Guide Onboarding | JRPG Dialogue State Machine & Reusable Overlay | Game Guide Welcome -> Trainer Name Input -> 3-Starter Selection | 4 files, 1 test (35 min) |
+| **02** | Resilient AI LLM Gateway | LLM Failovers (Ollama -> Groq -> Gemini) | Awakening Game Guide's AI Brain + Latency HUD Badge | 3 files, 1 test (30 min) |
 | **03** | External Ingestion & Structured Parsing | Asynchronous I/O (`httpx`), Rate Limiting | Async PokéAPI Lore Ingestion Client into Pydantic v2 Models | 3 files, 1 test (35 min) |
 | **04** | Vector Database & Semantic Pokédex | Embeddings & Cosine Search (ChromaDB) | Natural Language Pokédex Search by Meaning & Vibes | 3 files, 1 test (35 min) |
 | **05** | Classic Retro GBA Battle Arena | Deterministic State & Elemental Matchups | GBA Arena (Pidgey vs Charmander on grass patches) + 4 Moves | 4 files, 1 test (40 min) |
 | **06** | 5-Turn Battle Clock, `TEAM` Swap & Progression | Non-Stationary State & Threat Calibration | 5-Turn Clock, `TEAM` Swap, Auto-Recruit & +1% Stat Mastery | 4 files, 1 test (40 min) |
 | **07** | Catch Pokémon Roulette Phase | Probability Distributions & Game State | Turn-5 Catch Roulette (Gold 90%, Silver 75%, Bronze 60%, Normal 50%) | 3 files, 1 test (35 min) |
-| **08** | `ASK GUIDE` Tactical Battle Whisperer | In-Context Learning & Dynamic RAG | Right-Side Shaneil Overlay with Vector Opponent Counter-Advice | 3 files, 1 test (35 min) |
+| **08** | `ASK GUIDE` Tactical Battle Whisperer | In-Context Learning & Dynamic RAG | Right-Side Game Guide Overlay with Vector Opponent Counter-Advice | 3 files, 1 test (35 min) |
 | **09** | Autonomous Gym Leader AI Agent | Agent State Loops, Personas & Memory | Brock / Misty AI with dynamic threat calibration & battle taunts | 3 files, 1 test (40 min) |
 | **10** | Live Stadium Announcer via SSE | Multi-Agent Coordination & SSE Token Streaming | Top Stadium LED Ticker Tape streaming play-by-play commentary | 4 files, 1 test (40 min) |
 | **11** | Production Evals, Guardrails & Docker Release | LLM Test Suites, Guardrails, Docker, CI/CD | 20-Scenario Eval Benchmark + Docker Compose 1-Click Launch | 5 files, 1 test (45 min) |
