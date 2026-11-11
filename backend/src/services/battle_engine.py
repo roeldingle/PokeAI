@@ -16,6 +16,11 @@ from src.schemas.battle_schema import (
     PokemonMoveSlot,
     SingleMoveResolution,
 )
+from src.services.battle_progression_service import (
+    MAXIMUM_BATTLE_TURNS,
+    BattleProgressionService,
+    battle_progression_service,
+)
 
 # Complete 18-type Pokémon elemental advantage lookup matrix
 # Keys represent the Attacking Move Type, nested dictionaries map Defending Types to multipliers
@@ -47,10 +52,17 @@ class BattleEngineService:
     initiative resolution, and session state tracking.
     """
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        progression_service: Optional[BattleProgressionService] = None,
+    ) -> None:
         # In-memory storage for active battle sessions
         # Maps unique battle_session_id to active match dictionaries
         self.active_battle_sessions: Dict[str, Dict] = {}
+        # Progression service tracking party pools, +1% stat growth, and move unlocks
+        self.progression_service: BattleProgressionService = (
+            progression_service if progression_service is not None else BattleProgressionService()
+        )
 
     def calculate_elemental_effectiveness(
         self,
@@ -274,28 +286,50 @@ class BattleEngineService:
     ) -> Dict:
         """
         Instantiates a new battle session and records initial state in session storage.
+        Integrates Lesson 6 progression state: loads the trainer's party pool, applies
+        any accumulated +1% victory stat boosts and unlocked moves, and starts the 5-turn clock.
         """
         # Generate unique UUID string for tracking this battle instance
         session_id = str(uuid.uuid4())
 
-        # Construct player and opponent combatant models
-        player_entity = self.create_starter_pokemon_entity(
-            pokemon_id=selected_pokemon_id,
+        # Ensure trainer party pool is initialized and retrieve current progression state
+        party_pool_state = self.progression_service.ensure_trainer_party_initialized(
             trainer_name=trainer_name,
+            starter_pokemon_id=selected_pokemon_id,
         )
+        normalized_trainer_key = trainer_name.strip().lower()
+        trainer_roster = self.progression_service.trainer_party_rosters.get(
+            normalized_trainer_key, {}
+        )
+
+        # Build player combat entity from progression record (or baseline starter fallback)
+        if selected_pokemon_id in trainer_roster:
+            player_entity = self.progression_service.convert_party_monster_to_battle_entity(
+                party_monster=trainer_roster[selected_pokemon_id]
+            )
+        else:
+            player_entity = self.create_starter_pokemon_entity(
+                pokemon_id=selected_pokemon_id,
+                trainer_name=trainer_name,
+            )
+
         opponent_entity = self.create_wild_opponent_entity(
             pokemon_id=opponent_pokemon_id,
         )
 
-        # Store session record in memory
+        # Store session record in memory with 5-Turn Battle Clock and Party Pool metadata
         session_payload = {
             "battle_session_id": session_id,
             "trainer_name": trainer_name,
             "current_turn_number": 1,
+            "maximum_turns_allowed": MAXIMUM_BATTLE_TURNS,
+            "is_turn_limit_reached": False,
             "is_battle_concluded": False,
             "victorious_monster_name": None,
             "player_monster": player_entity,
             "opponent_monster": opponent_entity,
+            "party_pool": party_pool_state.model_dump(),
+            "progression_update": None,
         }
         self.active_battle_sessions[session_id] = session_payload
         return session_payload
@@ -308,11 +342,12 @@ class BattleEngineService:
     ) -> BattleTurnResolutionResponse:
         """
         Executes a complete round of combat:
-        1. Validates player move and decrements PP.
+        1. Validates 5-turn match clock and player move, then decrements PP.
         2. Compares speed initiative to determine turn order.
         3. Executes first strike; knocks out defender if HP reaches 0.
         4. If defender survives, executes retaliation strike.
-        5. Updates turn counter and returns structured response.
+        5. Enforces 5-turn match limit, awards +1% stat growth & auto-recruit on KO,
+           and returns structured response.
         """
         # Retrieve session state
         session_data = self.active_battle_sessions.get(battle_session_id)
@@ -321,6 +356,14 @@ class BattleEngineService:
 
         if session_data["is_battle_concluded"]:
             raise ValueError("This battle has already concluded.")
+
+        # Enforce strict 5-Turn Battle Clock before resolving action
+        current_turn_number: int = session_data["current_turn_number"]
+        maximum_turns_allowed: int = session_data.get("maximum_turns_allowed", MAXIMUM_BATTLE_TURNS)
+        if current_turn_number > maximum_turns_allowed:
+            raise ValueError(
+                f"The {maximum_turns_allowed}-turn battle clock has expired."
+            )
 
         player_monster: ActiveBattleEntity = session_data["player_monster"]
         opponent_monster: ActiveBattleEntity = session_data["opponent_monster"]
@@ -483,19 +526,39 @@ class BattleEngineService:
                     ),
                 )
 
-        # Check match conclusion
+        # Check match conclusion (Knockout OR 5-Turn Battle Clock expiration)
         turn_number = session_data["current_turn_number"]
-        is_concluded = (player_monster.current_health_points == 0) or (opponent_monster.current_health_points == 0)
-        victor_name = None
+        is_knockout = (
+            (player_monster.current_health_points == 0)
+            or (opponent_monster.current_health_points == 0)
+        )
+        # If Turn 5 finishes and neither monster fainted, the 5-turn match clock expires
+        is_turn_limit_reached = (not is_knockout) and (turn_number >= maximum_turns_allowed)
+        is_concluded = is_knockout or is_turn_limit_reached
+
+        victor_name: Optional[str] = None
+        progression_update_payload: Optional[Dict] = None
+
         if opponent_monster.current_health_points == 0:
             victor_name = player_monster.pokemon_name
+            # Player won by knockout within 5 turns: award +1% stat boost, check 10/20W move unlocks, and auto-recruit opponent
+            progression_reward = self.progression_service.record_victory_and_auto_recruit(
+                trainer_name=session_data["trainer_name"],
+                victorious_pokemon_id=player_monster.pokemon_id,
+                defeated_opponent_pokemon_id=opponent_monster.pokemon_id,
+                defeated_opponent_name=opponent_monster.pokemon_name,
+            )
+            progression_update_payload = progression_reward.model_dump()
+            session_data["party_pool"] = progression_reward.updated_party_pool.model_dump()
         elif player_monster.current_health_points == 0:
             victor_name = opponent_monster.pokemon_name
 
         # Increment turn number for subsequent rounds
         session_data["current_turn_number"] += 1
+        session_data["is_turn_limit_reached"] = is_turn_limit_reached
         session_data["is_battle_concluded"] = is_concluded
         session_data["victorious_monster_name"] = victor_name
+        session_data["progression_update"] = progression_update_payload
 
         return BattleTurnResolutionResponse(
             battle_session_id=battle_session_id,
@@ -506,8 +569,11 @@ class BattleEngineService:
             opponent_monster=opponent_monster,
             is_battle_concluded=is_concluded,
             victorious_monster_name=victor_name,
+            maximum_turns_allowed=maximum_turns_allowed,
+            is_turn_limit_reached=is_turn_limit_reached,
+            progression_update=progression_update_payload,
         )
 
 
 # Global singleton instance for injection across route handlers
-battle_engine_service = BattleEngineService()
+battle_engine_service = BattleEngineService(progression_service=battle_progression_service)

@@ -46,6 +46,60 @@ export interface SingleMoveResolution {
   narrative_announcement: string;
 }
 
+// Represents an individual monster in the trainer's party pool with +1% victory stat scaling
+export interface RecruitedPartyMonster {
+  pokemon_id: number;
+  pokemon_name: string;
+  level: number;
+  elemental_types: string[];
+  victories_count: number;
+  stat_progression_multiplier: number;
+  base_health_points: number;
+  base_attack_stat: number;
+  base_defense_stat: number;
+  base_speed_stat: number;
+  effective_health_points: number;
+  effective_attack_stat: number;
+  effective_defense_stat: number;
+  effective_speed_stat: number;
+  sprite_front_url: string;
+  sprite_back_url: string;
+  move_slots: PokemonMoveSlot[];
+}
+
+// Complete roster of monsters recruited by the trainer and pre-turn TEAM swap state
+export interface TrainerPartyPoolState {
+  trainer_name: string;
+  active_pokemon_id: number;
+  total_party_count: number;
+  is_team_swap_enabled: boolean;
+  party_monsters: RecruitedPartyMonster[];
+}
+
+// Response returned after a pre-Turn 1 party swap
+export interface TeamSwapResponse {
+  battle_session_id: string;
+  previous_pokemon_name: string;
+  new_active_monster: ActiveBattleEntity;
+  party_pool_state: TrainerPartyPoolState;
+  narrative_announcement: string;
+}
+
+// Post-battle progression summary awarded upon knockout victory
+export interface VictoryProgressionUpdateResponse {
+  trainer_name: string;
+  victorious_pokemon_id: number;
+  victorious_pokemon_name: string;
+  experience_points_gained: number;
+  updated_victories_count: number;
+  stat_progression_multiplier: number;
+  newly_unlocked_move_names: string[];
+  was_opponent_auto_recruited: boolean;
+  recruited_opponent_pokemon_name?: string | null;
+  updated_monster_entity: ActiveBattleEntity;
+  updated_party_pool: TrainerPartyPoolState;
+}
+
 // Comprehensive response returned after a round of combat
 export interface BattleTurnResolutionResponse {
   battle_session_id: string;
@@ -56,6 +110,9 @@ export interface BattleTurnResolutionResponse {
   opponent_monster: ActiveBattleEntity;
   is_battle_concluded: boolean;
   victorious_monster_name?: string | null;
+  maximum_turns_allowed?: number;
+  is_turn_limit_reached?: boolean;
+  progression_update?: VictoryProgressionUpdateResponse | null;
 }
 
 // Battle session wrapper returned upon match initialization
@@ -63,8 +120,12 @@ export interface BattleSessionData {
   battle_session_id: string;
   trainer_name: string;
   current_turn_number: number;
+  maximum_turns_allowed?: number;
+  is_turn_limit_reached?: boolean;
   is_battle_concluded: boolean;
   victorious_monster_name?: string | null;
   player_monster: ActiveBattleEntity;
   opponent_monster: ActiveBattleEntity;
+  party_pool?: TrainerPartyPoolState;
+  progression_update?: VictoryProgressionUpdateResponse | null;
 }
