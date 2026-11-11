@@ -1446,4 +1446,122 @@ body {
   animation: guide-post-battle-slide-up 0.5s ease-out forwards;
 }
 
+/* ==========================================================================
+   Lesson 7: Catch Pokémon Roulette Phase Animations
+   ========================================================================== */
+
+/* Active roulette card neon pulse */
+@keyframes roulette-neon-pulse {
+  0%, 100% {
+    transform: translateY(-4px) scale(1.03);
+    box-shadow: 0 0 16px rgba(59, 130, 246, 0.6), 4px 4px 0 #0f172a;
+  }
+  50% {
+    transform: translateY(-6px) scale(1.05);
+    box-shadow: 0 0 24px rgba(59, 130, 246, 0.9), 6px 6px 0 #0f172a;
+  }
+}
+
+.roulette-card-active-glow {
+  animation: roulette-neon-pulse 0.4s ease-in-out infinite alternate;
+}
+
+/* Pokéball Wobble 1 (Left tilt) */
+@keyframes pokeball-wobble-step1 {
+  0% { transform: rotate(0deg); }
+  50% { transform: rotate(-28deg) translateX(-4px); }
+  100% { transform: rotate(0deg); }
+}
+
+/* Pokéball Wobble 2 (Right tilt) */
+@keyframes pokeball-wobble-step2 {
+  0% { transform: rotate(0deg); }
+  50% { transform: rotate(28deg) translateX(4px); }
+  100% { transform: rotate(0deg); }
+}
+
+/* Pokéball Wobble 3 (Suspense shake) */
+@keyframes pokeball-wobble-step3 {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(-14deg); }
+  50% { transform: rotate(14deg); }
+  75% { transform: rotate(-6deg); }
+  100% { transform: rotate(0deg); }
+}
+
+/* Pokéball Caught Starburst Click */
+@keyframes pokeball-starburst-success {
+  0% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 0px #eab308);
+  }
+  50% {
+    transform: scale(1.22);
+    filter: drop-shadow(0 0 28px #eab308) brightness(1.3);
+  }
+  100% {
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 14px #eab308);
+  }
+}
+
+/* Pokéball Break-Free Smoke Burst */
+@keyframes pokeball-burst-failure {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  40% {
+    transform: scale(1.3) rotate(15deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(0.85);
+    opacity: 0.6;
+    filter: grayscale(0.8);
+  }
+}
+
+.pokeball-wobble-1 {
+  animation: pokeball-wobble-step1 0.65s ease-in-out;
+}
+
+.pokeball-wobble-2 {
+  animation: pokeball-wobble-step2 0.65s ease-in-out;
+}
+
+.pokeball-wobble-3 {
+  animation: pokeball-wobble-step3 0.65s ease-in-out;
+}
+
+.pokeball-caught-success {
+  animation: pokeball-starburst-success 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.pokeball-broke-free {
+  animation: pokeball-burst-failure 0.6s ease-out forwards;
+}
+
+/* Post-battle progression & recruitment banner layout */
+.post-battle-progression-banner {
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+@media (max-width: 1024px) {
+  .post-battle-progression-banner {
+    padding-right: 210px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .post-battle-progression-banner {
+    padding-right: 16px !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+}
+
+
+
 

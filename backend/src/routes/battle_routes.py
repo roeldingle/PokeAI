@@ -15,8 +15,13 @@ from src.schemas.progression_schema import (
     TeamSwapResponse,
     TrainerPartyPoolState,
 )
+from src.schemas.catch_schema import (
+    CatchRouletteSpinRequest,
+    CatchRouletteOutcome,
+)
 from src.services.battle_engine import battle_engine_service
 from src.services.battle_progression_service import battle_progression_service
+from src.services.catch_roulette_service import catch_roulette_service
 
 # Initialize dedicated battle router under /api/v1/battle
 battle_router = APIRouter(
@@ -162,3 +167,32 @@ async def get_trainer_party_pool(
     return battle_progression_service.get_trainer_party_pool_state(
         trainer_name=trainer_name
     )
+
+
+@battle_router.post(
+    "/catch/roulette",
+    response_model=CatchRouletteOutcome,
+    status_code=status.HTTP_200_OK,
+    summary="Spin the Lesson 7 Pokéball Roulette Wheel upon Turn 5 expiration",
+)
+async def spin_catch_roulette(
+    spin_request: CatchRouletteSpinRequest,
+) -> CatchRouletteOutcome:
+    """
+    Executes the Lesson 7 Overtime Catch Roulette:
+    1. Determines Pokéball tier using weighted wheel probability.
+    2. Tests capture success against tier probability (50% to 90%).
+    3. If caught, auto-recruits the wild monster into the trainer's party pool.
+    4. Returns full outcome with 3-wobble announcer narration and updated party state.
+    """
+    try:
+        outcome = catch_roulette_service.execute_roulette_spin_and_catch(
+            spin_request=spin_request
+        )
+        return outcome
+    except Exception as calculation_error:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Roulette spin calculation failed: {str(calculation_error)}",
+        )
+

@@ -129,3 +129,28 @@ export interface BattleSessionData {
   party_pool?: TrainerPartyPoolState;
   progression_update?: VictoryProgressionUpdateResponse | null;
 }
+
+// Lesson 7: Pokéball Roulette Wheel Tiers
+export type PokeballTier = "GOLD" | "SILVER" | "BRONZE" | "NORMAL";
+
+// Lesson 7: Request payload to spin the overtime capture roulette wheel
+export interface CatchRouletteSpinRequest {
+  trainer_name: string;
+  opponent_pokemon_id: number;
+  opponent_pokemon_name: string;
+  opponent_pokemon_sprite_url: string;
+  opponent_level?: number;
+  injected_tier_roll?: number;
+  injected_catch_roll?: number;
+}
+
+// Lesson 7: Full outcome returned after spinning the roulette wheel
+export interface CatchRouletteOutcome {
+  selected_pokeball_tier: PokeballTier;
+  capture_probability: number;
+  capture_successful: boolean;
+  captured_monster_name: string;
+  narrative_outcome: string;
+  updated_party_pool?: TrainerPartyPoolState | null;
+}
+

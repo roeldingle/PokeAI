@@ -60,9 +60,10 @@
   - **5-Turn Battle Rule & Single-Line Header**: Every battle lasts a maximum of 5 turns (`⏱️ TURN 1 / 5` to `⏱️ TURN 5 / 5`), displayed directly beside the lesson title in a single-line stadium header (`flex-wrap: nowrap`) to preserve vertical viewport space.
   - **EXP & +1% Stat Progression (`battle_progression_service.py`)**: Winning a battle awards EXP and grants a **+1% incremental stat boost** (`stat_progression_multiplier = 1.0 + (victories_count * 0.01)`) to the active monster's HP, Attack, Defense, and Speed, displayed in the post-battle victory summary banner. This dynamically scales threat levels in AI prompts.
   - **Acquisition Rule 1 (Defeat)**: If the player defeats/KOs the opponent within 5 turns, that Pokémon is automatically added to the player's Pokémon pool.
-  - **Acquisition Rule 2 (Catch Roulette Phase)**: If the opponent is NOT defeated by Turn 5, the battle enters the Catch Roulette Phase:
-    - **Gold Pokéball**: 90% catch chance
-    - **Silver Pokéball**: 75% catch chance
-    - **Bronze Pokéball**: 60% catch chance
-    - **Normal Pokéball**: 50% catch chance
+  - **Acquisition Rule 2 (Catch Roulette Phase — Lesson 7)**: If the opponent is NOT defeated by Turn 5, the battle automatically transitions into the overtime Catch Roulette Phase (`CatchRouletteModal.tsx` & `POST /api/v1/battle/catch/roulette` via `catch_roulette_service.py`):
+    - **Gold Pokéball (10% Wheel Odds)**: 90% catch chance
+    - **Silver Pokéball (25% Wheel Odds)**: 75% catch chance
+    - **Bronze Pokéball (35% Wheel Odds)**: 60% catch chance
+    - **Normal Pokéball (30% Wheel Odds)**: 50% catch chance
+    - Features rapid carousel cycling, tier landing deceleration, iconic 3-wobble Pokéball animation, and automatic party pool recruitment.
   - **`ASK GUIDE` Action**: Pauses battle and slides in the Game Guide's signature right-side portrait, dynamic nameplate, and dialogue box overlay with RAG tactical advice.
