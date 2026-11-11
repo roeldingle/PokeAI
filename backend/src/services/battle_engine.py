@@ -21,6 +21,7 @@ from src.services.battle_progression_service import (
     BattleProgressionService,
     battle_progression_service,
 )
+from src.services.gym_leader_agent import gym_leader_agent_service
 
 # Complete 18-type Pokémon elemental advantage lookup matrix
 # Keys represent the Attacking Move Type, nested dictionaries map Defending Types to multipliers
@@ -258,8 +259,50 @@ class BattleEngineService:
 
     def create_wild_opponent_entity(self, pokemon_id: int = 16) -> ActiveBattleEntity:
         """
-        Creates an authentic early-game wild opponent (Pidgey Lv 5) with animated showdown sprites.
+        Creates an authentic opponent combatant:
+        - #95 Onix (Lv 8, Rock/Ground): Gym Leader Brock's signature monster with 3 moves
+        - #121 Starmie (Lv 9, Water/Psychic): Gym Leader Misty's signature monster with 4 moves
+        - #16 Pidgey (Lv 5, Normal/Flying): Wild opponent with 2 basic moves
         """
+        if pokemon_id == 95:
+            return ActiveBattleEntity(
+                pokemon_id=95,
+                pokemon_name="Onix",
+                level=8,
+                elemental_types=["rock", "ground"],
+                current_health_points=24,
+                maximum_health_points=24,
+                attack_stat=11,
+                defense_stat=18,
+                speed_stat=11,
+                sprite_front_url="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/95.gif",
+                sprite_back_url="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/back/95.gif",
+                move_slots=[
+                    PokemonMoveSlot(move_id=17, move_name="Rock Throw", elemental_type="rock", base_power=50, accuracy_percentage=90, current_power_points=15, maximum_power_points=15, is_unlocked=True, unlock_victory_threshold=0),
+                    PokemonMoveSlot(move_id=18, move_name="Tackle", elemental_type="normal", base_power=40, accuracy_percentage=100, current_power_points=35, maximum_power_points=35, is_unlocked=True, unlock_victory_threshold=0),
+                    PokemonMoveSlot(move_id=19, move_name="Harden", elemental_type="normal", base_power=0, accuracy_percentage=100, current_power_points=30, maximum_power_points=30, is_unlocked=True, unlock_victory_threshold=0),
+                ],
+            )
+        if pokemon_id == 121:
+            return ActiveBattleEntity(
+                pokemon_id=121,
+                pokemon_name="Starmie",
+                level=9,
+                elemental_types=["water", "psychic"],
+                current_health_points=25,
+                maximum_health_points=25,
+                attack_stat=13,
+                defense_stat=14,
+                speed_stat=16,
+                sprite_front_url="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/121.gif",
+                sprite_back_url="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/back/121.gif",
+                move_slots=[
+                    PokemonMoveSlot(move_id=21, move_name="Water Gun", elemental_type="water", base_power=40, accuracy_percentage=100, current_power_points=25, maximum_power_points=25, is_unlocked=True, unlock_victory_threshold=0),
+                    PokemonMoveSlot(move_id=22, move_name="Swift", elemental_type="normal", base_power=60, accuracy_percentage=100, current_power_points=20, maximum_power_points=20, is_unlocked=True, unlock_victory_threshold=0),
+                    PokemonMoveSlot(move_id=23, move_name="Psybeam", elemental_type="psychic", base_power=65, accuracy_percentage=100, current_power_points=20, maximum_power_points=20, is_unlocked=True, unlock_victory_threshold=0),
+                    PokemonMoveSlot(move_id=24, move_name="Recover", elemental_type="normal", base_power=0, accuracy_percentage=100, current_power_points=10, maximum_power_points=10, is_unlocked=True, unlock_victory_threshold=0),
+                ],
+            )
         return ActiveBattleEntity(
             pokemon_id=16,
             pokemon_name="Pidgey",
@@ -330,6 +373,8 @@ class BattleEngineService:
             "opponent_monster": opponent_entity,
             "party_pool": party_pool_state.model_dump(),
             "progression_update": None,
+            "combat_memory_log": [],
+            "gym_leader_decision": None,
         }
         self.active_battle_sessions[session_id] = session_payload
         return session_payload
@@ -385,9 +430,32 @@ class BattleEngineService:
         # Decrement player move PP
         chosen_player_move.current_power_points -= 1
 
-        # Opponent selects a basic move (e.g. first available move with PP)
+        # Lesson 9 Autonomous Gym Leader AI Agent: Perceive -> Remember -> Decide -> Act
+        detected_multiplier: float = 1.0
+        party_pool_dict = session_data.get("party_pool") or {}
+        for party_member in party_pool_dict.get("party_monsters", []):
+            if party_member.get("pokemon_id") == player_monster.pokemon_id:
+                detected_multiplier = float(
+                    party_member.get("stat_progression_multiplier", 1.0)
+                )
+                break
+
+        combat_memory_log: List[str] = session_data.setdefault("combat_memory_log", [])
+        agent_decision = gym_leader_agent_service.evaluate_turn_decision_sync(
+            player_monster=player_monster,
+            opponent_monster=opponent_monster,
+            calculate_effectiveness_fn=self.calculate_elemental_effectiveness,
+            stat_progression_multiplier=detected_multiplier,
+            combat_memory_log=combat_memory_log,
+        )
+
+        # Resolve the chosen opponent move slot from the agent's decision
         opponent_move = next(
-            (move for move in opponent_monster.move_slots if move.current_power_points > 0 and move.base_power > 0),
+            (
+                move
+                for move in opponent_monster.move_slots
+                if move.move_id == agent_decision.selected_move_id
+            ),
             opponent_monster.move_slots[0],
         )
         opponent_move.current_power_points = max(0, opponent_move.current_power_points - 1)
@@ -553,12 +621,18 @@ class BattleEngineService:
         elif player_monster.current_health_points == 0:
             victor_name = opponent_monster.pokemon_name
 
-        # Increment turn number for subsequent rounds
+        # Increment turn number for subsequent rounds and record combat memory for Lesson 9 Agent
+        combat_memory_log.append(
+            f"Turn {turn_number}: {player_monster.pokemon_name} used {chosen_player_move.move_name}; "
+            f"{opponent_monster.pokemon_name} chose {opponent_move.move_name} ({agent_decision.agent_mood.value})."
+        )
+        gym_leader_decision_payload = agent_decision.model_dump()
         session_data["current_turn_number"] += 1
         session_data["is_turn_limit_reached"] = is_turn_limit_reached
         session_data["is_battle_concluded"] = is_concluded
         session_data["victorious_monster_name"] = victor_name
         session_data["progression_update"] = progression_update_payload
+        session_data["gym_leader_decision"] = gym_leader_decision_payload
 
         return BattleTurnResolutionResponse(
             battle_session_id=battle_session_id,
@@ -572,6 +646,7 @@ class BattleEngineService:
             maximum_turns_allowed=maximum_turns_allowed,
             is_turn_limit_reached=is_turn_limit_reached,
             progression_update=progression_update_payload,
+            gym_leader_decision=gym_leader_decision_payload,
         )
 
 

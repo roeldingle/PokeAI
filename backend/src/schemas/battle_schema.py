@@ -142,3 +142,8 @@ class BattleTurnResolutionResponse(BaseModel):
         default=None,
         description="Progression reward details when the player wins by knockout",
     )
+    # Lesson 9 Autonomous Gym Leader AI decision telemetry (Perceive -> Remember -> Decide -> Act)
+    gym_leader_decision: Optional[dict] = Field(
+        default=None,
+        description="Autonomous Gym Leader AI turn decision and dynamic threat telemetry",
+    )

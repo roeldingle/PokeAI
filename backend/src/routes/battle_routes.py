@@ -23,10 +23,15 @@ from src.schemas.coach_schema import (
     CoachTacticalAdviceRequest,
     CoachTacticalAdviceResponse,
 )
+from src.schemas.gym_leader_schema import (
+    GymLeaderTurnDecision,
+    GymLeaderTurnDecisionRequest,
+)
 from src.services.battle_engine import battle_engine_service
 from src.services.battle_progression_service import battle_progression_service
 from src.services.catch_roulette_service import catch_roulette_service
 from src.services.coach_rag_service import coach_rag_service
+from src.services.gym_leader_agent import gym_leader_agent_service
 
 # Initialize dedicated battle router under /api/v1/battle
 battle_router = APIRouter(
@@ -264,5 +269,45 @@ async def get_coach_tactical_advice_by_session(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Tactical RAG coach error: {str(coaching_error)}",
         )
+
+
+@battle_router.post(
+    "/gym-leader/decide",
+    response_model=GymLeaderTurnDecision,
+    status_code=status.HTTP_200_OK,
+    summary="Execute Lesson 9 Autonomous Gym Leader Agent decision loop",
+)
+async def decide_gym_leader_turn_action(
+    decision_request: GymLeaderTurnDecisionRequest,
+) -> GymLeaderTurnDecision:
+    """
+    Executes the Lesson 9 Autonomous Gym Leader AI Agent loop (Perceive -> Remember -> Decide -> Act):
+    1. Perceives field HP ratios, elemental matchups, and player's +1% stat_progression_multiplier.
+    2. Recalls combat memory from prior turns.
+    3. Selects the mathematically optimal move slot.
+    4. Emits an in-character battle taunt conditioned on persona (BROCK, MISTY, or WILD_INSTINCT).
+    """
+    session_data = battle_engine_service.active_battle_sessions.get(
+        decision_request.battle_session_id
+    )
+    if not session_data:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Battle session '{decision_request.battle_session_id}' not found.",
+        )
+
+    try:
+        return await gym_leader_agent_service.evaluate_turn_decision_for_session(
+            battle_session=session_data,
+            calculate_effectiveness_fn=battle_engine_service.calculate_elemental_effectiveness,
+            gym_leader_persona=decision_request.gym_leader_persona,
+            use_llm_gateway=decision_request.use_llm_gateway,
+        )
+    except Exception as agent_error:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Gym Leader Agent decision failed: {str(agent_error)}",
+        )
+
 
 

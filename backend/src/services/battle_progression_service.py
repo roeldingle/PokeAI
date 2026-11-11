@@ -215,6 +215,62 @@ class BattleProgressionService:
                 move_slots=base_moves,
             )
 
+        # Onix (#95 - Rock/Ground Gym Leader Brock's Signature Monster)
+        if pokemon_id == 95:
+            base_moves = [
+                PokemonMoveSlot(move_id=17, move_name="Rock Throw", elemental_type="rock", base_power=50, accuracy_percentage=90, current_power_points=15, maximum_power_points=15, is_unlocked=True, unlock_victory_threshold=0),
+                PokemonMoveSlot(move_id=18, move_name="Tackle", elemental_type="normal", base_power=40, accuracy_percentage=100, current_power_points=35, maximum_power_points=35, is_unlocked=True, unlock_victory_threshold=0),
+                PokemonMoveSlot(move_id=19, move_name="Harden", elemental_type="normal", base_power=0, accuracy_percentage=100, current_power_points=30, maximum_power_points=30, is_unlocked=False, unlock_victory_threshold=MOVE_SLOT_3_VICTORY_THRESHOLD),
+                PokemonMoveSlot(move_id=20, move_name="Earthquake", elemental_type="ground", base_power=100, accuracy_percentage=100, current_power_points=10, maximum_power_points=10, is_unlocked=False, unlock_victory_threshold=MOVE_SLOT_4_VICTORY_THRESHOLD),
+            ]
+            return RecruitedPartyMonster(
+                pokemon_id=95,
+                pokemon_name="Onix",
+                level=8,
+                elemental_types=["rock", "ground"],
+                victories_count=0,
+                stat_progression_multiplier=1.0,
+                base_health_points=24,
+                base_attack_stat=11,
+                base_defense_stat=18,
+                base_speed_stat=11,
+                effective_health_points=24,
+                effective_attack_stat=11,
+                effective_defense_stat=18,
+                effective_speed_stat=11,
+                sprite_front_url="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/95.gif",
+                sprite_back_url="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/back/95.gif",
+                move_slots=base_moves,
+            )
+
+        # Starmie (#121 - Water/Psychic Gym Leader Misty's Signature Monster)
+        if pokemon_id == 121:
+            base_moves = [
+                PokemonMoveSlot(move_id=21, move_name="Water Gun", elemental_type="water", base_power=40, accuracy_percentage=100, current_power_points=25, maximum_power_points=25, is_unlocked=True, unlock_victory_threshold=0),
+                PokemonMoveSlot(move_id=22, move_name="Swift", elemental_type="normal", base_power=60, accuracy_percentage=100, current_power_points=20, maximum_power_points=20, is_unlocked=True, unlock_victory_threshold=0),
+                PokemonMoveSlot(move_id=23, move_name="Psybeam", elemental_type="psychic", base_power=65, accuracy_percentage=100, current_power_points=20, maximum_power_points=20, is_unlocked=False, unlock_victory_threshold=MOVE_SLOT_3_VICTORY_THRESHOLD),
+                PokemonMoveSlot(move_id=24, move_name="Hydro Pump", elemental_type="water", base_power=110, accuracy_percentage=80, current_power_points=5, maximum_power_points=5, is_unlocked=False, unlock_victory_threshold=MOVE_SLOT_4_VICTORY_THRESHOLD),
+            ]
+            return RecruitedPartyMonster(
+                pokemon_id=121,
+                pokemon_name="Starmie",
+                level=9,
+                elemental_types=["water", "psychic"],
+                victories_count=0,
+                stat_progression_multiplier=1.0,
+                base_health_points=25,
+                base_attack_stat=13,
+                base_defense_stat=14,
+                base_speed_stat=16,
+                effective_health_points=25,
+                effective_attack_stat=13,
+                effective_defense_stat=14,
+                effective_speed_stat=16,
+                sprite_front_url="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/121.gif",
+                sprite_back_url="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/back/121.gif",
+                move_slots=base_moves,
+            )
+
         # Fallback generic monster template if an custom ID is provided
         return self.build_baseline_species_template(pokemon_id=7)
 

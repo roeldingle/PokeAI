@@ -28,8 +28,8 @@
 | **Lesson 06** | 5-Turn Battle Clock, `TEAM` Swap & +1% Stat Progression | ✅ Completed |
 | **Lesson 07** | Catch Pokémon Roulette Phase (Turn 5 Limit) | ✅ Completed |
 | **Lesson 08** | `ASK GUIDE` Battle Whisperer (Dynamic In-Context RAG) | ✅ Completed |
-| **Lesson 09** | Autonomous Gym Leader AI Agent & Dynamic Threat Calibration | ⏳ Up Next |
-| **Lesson 10** | Live Stadium Announcer (SSE Streaming Ticker Tape) | ⏳ Pending |
+| **Lesson 09** | Autonomous Gym Leader AI Agent & Dynamic Threat Calibration | ✅ Completed |
+| **Lesson 10** | Live Stadium Announcer (SSE Streaming Ticker Tape) | ⏳ Up Next |
 | **Lesson 11** | Production Hardening, CI/CD, Containerization & Evals | ⏳ Pending |
 
 

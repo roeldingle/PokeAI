@@ -16,6 +16,8 @@ import type {
   CatchRouletteOutcome,
   CatchRouletteSpinRequest,
   CoachTacticalAdviceResponse,
+  GymLeaderPersona,
+  GymLeaderTurnDecision,
   TeamSwapResponse,
   TrainerPartyPoolState,
 } from "../types/battle";
@@ -213,3 +215,38 @@ export async function fetchCoachTacticalAdvice(
 
   return response.json();
 }
+
+/**
+ * Lesson 9: Queries the Autonomous Gym Leader AI Agent's decision loop.
+ */
+export async function fetchGymLeaderDecision(
+  battleSessionId: string,
+  gymLeaderPersona?: GymLeaderPersona,
+  useLlmGateway: boolean = false
+): Promise<GymLeaderTurnDecision> {
+  const response = await fetch(
+    `${BACKEND_API_BASE_URL}/api/v1/battle/gym-leader/decide`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        battle_session_id: battleSessionId,
+        gym_leader_persona: gymLeaderPersona ?? null,
+        use_llm_gateway: useLlmGateway,
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    const errorPayload = await response.json().catch(() => ({}));
+    throw new Error(
+      errorPayload.detail ||
+        `Failed to fetch Gym Leader decision (Status ${response.status})`
+    );
+  }
+
+  return response.json();
+}
+

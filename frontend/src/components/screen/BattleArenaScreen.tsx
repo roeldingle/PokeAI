@@ -17,6 +17,7 @@ import { GameGuideDialogBox } from "../ui/GameGuideDialogBox";
 import { TeamSwapModal } from "../ui/TeamSwapModal";
 import { CatchRouletteModal } from "../ui/CatchRouletteModal";
 import { TacticalGuideOverlay } from "../ui/TacticalGuideOverlay";
+import { GymLeaderBadge } from "../ui/GymLeaderBadge";
 import {
   fetchCoachTacticalAdvice,
   initiateBattleMatch,
@@ -29,6 +30,7 @@ import type {
   BattleTurnResolutionResponse,
   CatchRouletteOutcome,
   CoachTacticalAdviceResponse,
+  GymLeaderTurnDecision,
   PokemonMoveSlot,
   TrainerPartyPoolState,
   VictoryProgressionUpdateResponse,
@@ -74,6 +76,11 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
   const [coachTacticalAdvice, setCoachTacticalAdvice] =
     useState<CoachTacticalAdviceResponse | null>(null);
 
+  // Lesson 9: Autonomous Gym Leader AI Agent State
+  const [selectedOpponentId, setSelectedOpponentId] = useState<number>(16);
+  const [gymLeaderDecision, setGymLeaderDecision] =
+    useState<GymLeaderTurnDecision | null>(null);
+
   // Combat loop & view states
   const [isMoveGridActive, setIsMoveGridActive] = useState<boolean>(false);
   const [isTurnResolving, setIsTurnResolving] = useState<boolean>(false);
@@ -107,7 +114,7 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
   const [showPlayerImpactStar, setShowPlayerImpactStar] = useState<boolean>(false);
 
   // Function to initialize or restart a battle match
-  const startCombatMatch = useCallback(async () => {
+  const startCombatMatch = useCallback(async (overrideOpponentId?: number) => {
     try {
       setIsLoadingSession(true);
       setErrorMessage(null);
@@ -121,15 +128,20 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
       setCatchRouletteOutcome(null);
       setIsTacticalGuideOpen(false);
       setCoachTacticalAdvice(null);
+      setGymLeaderDecision(null);
       setProgressionReward(null);
 
       // Use the trainer's current lead monster if available, otherwise selectedPokemonId
       const activeLeadId = partyPoolState?.active_pokemon_id ?? selectedPokemonId;
+      const targetOpponentId =
+        typeof overrideOpponentId === "number"
+          ? overrideOpponentId
+          : selectedOpponentId;
 
       const sessionResult = await initiateBattleMatch(
         trainerName,
         activeLeadId,
-        16 // Pidgey ID
+        targetOpponentId
       );
 
       setActiveSession(sessionResult);
@@ -379,6 +391,9 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
       }
 
       // Sync final state and advance 5-Turn Battle Clock
+      if (resolutionResult.gym_leader_decision) {
+        setGymLeaderDecision(resolutionResult.gym_leader_decision);
+      }
       setTimeout(() => {
         setPlayerMonster(resolutionResult.player_monster);
         setOpponentMonster(resolutionResult.opponent_monster);
@@ -708,6 +723,18 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
                   />
                 </div>
               </div>
+
+              {/* Lesson 9: Autonomous Gym Leader Mood, Threat Calibration & Challenger Selector */}
+              <GymLeaderBadge
+                opponentPokemonId={opponentMonster.pokemon_id}
+                currentTurnNumber={currentTurnNumber}
+                isTurnResolving={isTurnResolving}
+                gymLeaderDecision={gymLeaderDecision}
+                onSelectOpponentChallenger={(targetOpponentPokemonId) => {
+                  setSelectedOpponentId(targetOpponentPokemonId);
+                  startCombatMatch(targetOpponentPokemonId);
+                }}
+              />
             </div>
 
             {/* Opponent Sprite Stage on Grassy Pedestal */}
@@ -1171,7 +1198,7 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
                   🏆 Return to Academy
                 </ButtonUI>
                 <ButtonUI
-                  onClick={startCombatMatch}
+                  onClick={() => startCombatMatch()}
                   variant="default"
                   showArrowPointer="right"
                 >

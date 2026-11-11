@@ -113,6 +113,7 @@ export interface BattleTurnResolutionResponse {
   maximum_turns_allowed?: number;
   is_turn_limit_reached?: boolean;
   progression_update?: VictoryProgressionUpdateResponse | null;
+  gym_leader_decision?: GymLeaderTurnDecision | null;
 }
 
 // Battle session wrapper returned upon match initialization
@@ -128,6 +129,7 @@ export interface BattleSessionData {
   opponent_monster: ActiveBattleEntity;
   party_pool?: TrainerPartyPoolState;
   progression_update?: VictoryProgressionUpdateResponse | null;
+  gym_leader_decision?: GymLeaderTurnDecision | null;
 }
 
 // Lesson 7: Pokéball Roulette Wheel Tiers
@@ -174,5 +176,28 @@ export interface CoachTacticalAdviceResponse {
   model_identifier: string;
   execution_latency_milliseconds: number;
 }
+
+// Lesson 9: Autonomous Gym Leader Personas & Mood States
+export type GymLeaderPersona = "WILD_INSTINCT" | "BROCK" | "MISTY";
+export type AgentMoodState =
+  | "CALCULATING"
+  | "AGGRESSIVE"
+  | "DEFENSIVE"
+  | "DESPERATE_CLUTCH";
+
+// Lesson 9: Autonomous Gym Leader Turn Decision Telemetry
+export interface GymLeaderTurnDecision {
+  selected_move_id: number;
+  selected_move_name: string;
+  internal_tactical_reasoning: string;
+  in_character_dialogue_taunt: string;
+  agent_mood: AgentMoodState;
+  calibrated_threat_score: number;
+  detected_player_stat_multiplier: number;
+  gym_leader_persona: GymLeaderPersona;
+  active_provider_name: string;
+  execution_latency_milliseconds: number;
+}
+
 
 
