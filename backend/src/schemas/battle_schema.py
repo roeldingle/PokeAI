@@ -133,3 +133,12 @@ class BattleTurnResolutionResponse(BaseModel):
     is_battle_concluded: bool = Field(description="True if match has ended")
     # Name of the winning monster if battle is concluded
     victorious_monster_name: Optional[str] = Field(default=None, description="Name of winner if resolved")
+    # Maximum turns allowed per battle match (Lesson 6 5-Turn Battle Clock)
+    maximum_turns_allowed: int = Field(default=5, ge=1, description="Maximum turns permitted per match")
+    # True when Turn 5 finishes and both combatants are still standing (triggers Catch Roulette in Lesson 7)
+    is_turn_limit_reached: bool = Field(default=False, description="True if Turn 5 expired without a knockout")
+    # Post-battle progression summary (+1% stat scaling, move slot unlocks, and KO auto-recruitment)
+    progression_update: Optional[dict] = Field(
+        default=None,
+        description="Progression reward details when the player wins by knockout",
+    )

@@ -14,15 +14,19 @@ import React, { useEffect, useState, useCallback } from "react";
 import { ButtonUI } from "../ui/ButtonUI";
 import { ProviderStatusBadge } from "../ui/ProviderStatusBadge";
 import { GameGuideDialogBox } from "../ui/GameGuideDialogBox";
+import { TeamSwapModal } from "../ui/TeamSwapModal";
 import {
   initiateBattleMatch,
   resolveBattleTurn,
+  swapActivePartyMonster,
 } from "../../services/battleService";
 import type {
   ActiveBattleEntity,
   BattleSessionData,
   BattleTurnResolutionResponse,
   PokemonMoveSlot,
+  TrainerPartyPoolState,
+  VictoryProgressionUpdateResponse,
 } from "../../types/battle";
 
 interface BattleArenaScreenProps {
@@ -42,6 +46,15 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
   const [activeSession, setActiveSession] = useState<BattleSessionData | null>(null);
   const [isLoadingSession, setIsLoadingSession] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Lesson 6: 5-Turn Battle Clock & Party Progression State
+  const [currentTurnNumber, setCurrentTurnNumber] = useState<number>(1);
+  const [maximumTurnsAllowed, setMaximumTurnsAllowed] = useState<number>(5);
+  const [partyPoolState, setPartyPoolState] = useState<TrainerPartyPoolState | null>(null);
+  const [isTeamSwapModalOpen, setIsTeamSwapModalOpen] = useState<boolean>(false);
+  const [isSwapInProgress, setIsSwapInProgress] = useState<boolean>(false);
+  const [progressionReward, setProgressionReward] =
+    useState<VictoryProgressionUpdateResponse | null>(null);
 
   // Combat loop & view states
   const [isMoveGridActive, setIsMoveGridActive] = useState<boolean>(false);
@@ -66,7 +79,8 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
 
   // Post-battle Game Guide debrief presentation states
   const [showPostBattleGuide, setShowPostBattleGuide] = useState<boolean>(false);
-  const [battleOutcome, setBattleOutcome] = useState<"VICTORY" | "DEFEAT" | null>(null);
+  const [battleOutcome, setBattleOutcome] =
+    useState<"VICTORY" | "DEFEAT" | "TURN_LIMIT" | null>(null);
 
   // Visual impact overlays & floating combat damage numbers
   const [opponentFloatingDamage, setOpponentFloatingDamage] = useState<number | null>(null);
@@ -84,16 +98,26 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
       setShowPostBattleGuide(false);
       setBattleOutcome(null);
       setIsMoveGridActive(false);
+      setIsTeamSwapModalOpen(false);
+      setProgressionReward(null);
+
+      // Use the trainer's current lead monster if available, otherwise selectedPokemonId
+      const activeLeadId = partyPoolState?.active_pokemon_id ?? selectedPokemonId;
 
       const sessionResult = await initiateBattleMatch(
         trainerName,
-        selectedPokemonId,
+        activeLeadId,
         16 // Pidgey ID
       );
 
       setActiveSession(sessionResult);
       setPlayerMonster(sessionResult.player_monster);
       setOpponentMonster(sessionResult.opponent_monster);
+      setCurrentTurnNumber(sessionResult.current_turn_number || 1);
+      setMaximumTurnsAllowed(sessionResult.maximum_turns_allowed || 5);
+      if (sessionResult.party_pool) {
+        setPartyPoolState(sessionResult.party_pool);
+      }
       setBattleNarrationText(
         `A wild ${sessionResult.opponent_monster.pokemon_name} appeared! What will ${sessionResult.player_monster.pokemon_name} do?`
       );
@@ -104,12 +128,35 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
     } finally {
       setIsLoadingSession(false);
     }
-  }, [trainerName, selectedPokemonId]);
+  }, [trainerName, selectedPokemonId, partyPoolState?.active_pokemon_id]);
 
   // Mount effect to start combat
   useEffect(() => {
     startCombatMatch();
-  }, [startCombatMatch]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [trainerName, selectedPokemonId]);
+
+  // Handle Pre-Turn 1 TEAM Party Swap
+  const handlePartySwap = async (targetPokemonId: number) => {
+    if (!activeSession || isSwapInProgress) return;
+    try {
+      setIsSwapInProgress(true);
+      const swapResponse = await swapActivePartyMonster(
+        activeSession.battle_session_id,
+        targetPokemonId
+      );
+      setPlayerMonster(swapResponse.new_active_monster);
+      setPartyPoolState(swapResponse.party_pool_state);
+      setBattleNarrationText(swapResponse.narrative_announcement);
+      setIsTeamSwapModalOpen(false);
+    } catch (err) {
+      setBattleNarrationText(
+        err instanceof Error ? err.message : "Unable to swap party monster."
+      );
+    } finally {
+      setIsSwapInProgress(false);
+    }
+  };
 
   // Handle move execution
   const handleExecuteMove = async (selectedMove: PokemonMoveSlot) => {
@@ -307,23 +354,53 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
         }
       }
 
-      // Sync final state
+      // Sync final state and advance 5-Turn Battle Clock
       setTimeout(() => {
         setPlayerMonster(resolutionResult.player_monster);
         setOpponentMonster(resolutionResult.opponent_monster);
+        if (!resolutionResult.is_battle_concluded) {
+          setCurrentTurnNumber(
+            Math.min(
+              resolutionResult.maximum_turns_allowed || 5,
+              resolutionResult.current_turn_number + 1
+            )
+          );
+        } else {
+          setCurrentTurnNumber(resolutionResult.current_turn_number);
+        }
       }, 600);
 
       // Handle match conclusion and trigger Game Guide post-match debrief
       if (resolutionResult.is_battle_concluded) {
         const isVictor =
           resolutionResult.victorious_monster_name === playerMonster?.pokemon_name;
-        setBattleOutcome(isVictor ? "VICTORY" : "DEFEAT");
+        const isTurnLimitReached = Boolean(resolutionResult.is_turn_limit_reached);
 
-        // First display the defeat/victory stadium log
+        if (isVictor && resolutionResult.progression_update) {
+          setProgressionReward(resolutionResult.progression_update);
+          setPartyPoolState(resolutionResult.progression_update.updated_party_pool);
+        }
+
+        setBattleOutcome(
+          isVictor ? "VICTORY" : isTurnLimitReached ? "TURN_LIMIT" : "DEFEAT"
+        );
+
+        // First display the defeat/victory/turn-limit stadium log
         setTimeout(() => {
           if (isVictor) {
+            const winCount =
+              resolutionResult.progression_update?.updated_victories_count ?? 1;
+            const bonusPct = Math.round(
+              ((resolutionResult.progression_update?.stat_progression_multiplier ?? 1.01) -
+                1.0) *
+                100
+            );
             setBattleNarrationText(
-              `🏆 VICTORY! Wild ${opponentMonster?.pokemon_name} fainted! You earned 45 EXP!`
+              `🏆 VICTORY! Wild ${opponentMonster?.pokemon_name} fainted & joined your party! (+45 EXP | ${winCount}W | +${bonusPct}% Stats)`
+            );
+          } else if (isTurnLimitReached) {
+            setBattleNarrationText(
+              `⏱️ 5-TURN CLOCK EXPIRED! Wild ${opponentMonster?.pokemon_name} survived all 5 turns! (Catch Roulette unlocks in Lesson 7)`
             );
           } else {
             setBattleNarrationText(
@@ -396,14 +473,35 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
     playerMonster.maximum_health_points
   );
 
+  const totalPartyCount = partyPoolState?.total_party_count ?? 1;
+  const canSwapTeamNow =
+    currentTurnNumber === 1 &&
+    Boolean(partyPoolState?.is_team_swap_enabled) &&
+    !isTurnResolving;
+
   return (
     <div className="pokeai-viewport">
       <div className="gba-screen-chassis" style={{ minHeight: "680px" }}>
-        {/* Top Stadium Header */}
+        {/* Top Stadium Header with 5-Turn Battle Clock */}
         <header className="stadium-header-bar">
-          <span className="stadium-indicator">
-            ● LESSON 5: CLASSIC GBA BATTLE ARENA (DETERMINISTIC DAMAGE)
-          </span>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "nowrap" }}>
+            <span className="stadium-indicator">
+              ● LESSON 6: 5-TURN CLOCK, TEAM SWAP & +1% STAT MASTERY
+            </span>
+            <span
+              style={{
+                fontFamily: "var(--font-pixel)",
+                fontSize: "0.62rem",
+                backgroundColor: currentTurnNumber >= 5 ? "#fee2e2" : "#fef3c7",
+                color: currentTurnNumber >= 5 ? "#dc2626" : "#b45309",
+                border: `2px solid ${currentTurnNumber >= 5 ? "#ef4444" : "#f59e0b"}`,
+                padding: "3px 8px",
+                borderRadius: "6px",
+              }}
+            >
+              ⏱️ TURN {currentTurnNumber} / {maximumTurnsAllowed}
+            </span>
+          </div>
           <ProviderStatusBadge />
         </header>
 
@@ -420,6 +518,16 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
             overflow: "hidden",
           }}
         >
+          {/* Lesson 6 Pre-Turn 1 Party Swap Modal */}
+          <TeamSwapModal
+            isOpen={isTeamSwapModalOpen}
+            trainerName={trainerName}
+            activePokemonId={playerMonster.pokemon_id}
+            partyMonsters={partyPoolState?.party_monsters ?? []}
+            isSwapInProgress={isSwapInProgress}
+            onSelectPartyMonster={handlePartySwap}
+            onCloseModal={() => setIsTeamSwapModalOpen(false)}
+          />
           {/* Top Row: Opponent HUD (Left) & Opponent Sprite on Grassy Pedestal (Right) */}
           <div
             style={{
@@ -780,18 +888,95 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
                 background: "linear-gradient(180deg, rgba(30, 41, 59, 0.95) 0%, #0f172a 100%)",
               }}
             >
+              {/* Lesson 6 Post-Battle Progression & Auto-Recruit Summary Banner */}
+              {battleOutcome === "VICTORY" && progressionReward && (
+                <div
+                  style={{
+                    backgroundColor: "rgba(255, 255, 255, 0.94)",
+                    border: "3px solid #22c55e",
+                    borderRadius: "10px",
+                    padding: "12px 18px",
+                    marginBottom: "14px",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    flexWrap: "wrap",
+                    gap: "12px",
+                  }}
+                >
+                  <div>
+                    <div
+                      style={{
+                        fontFamily: "var(--font-pixel)",
+                        fontSize: "0.72rem",
+                        color: "#15803d",
+                        marginBottom: "4px",
+                      }}
+                    >
+                      📈 +1% STAT MASTERY BOOST ({progressionReward.victorious_pokemon_name}:{" "}
+                      {progressionReward.updated_victories_count} Wins →{" "}
+                      {progressionReward.stat_progression_multiplier.toFixed(2)}x Multiplier)
+                    </div>
+                    <div style={{ fontSize: "0.78rem", color: "#334155" }}>
+                      Scaled Stats:{" "}
+                      <strong>
+                        HP {progressionReward.updated_monster_entity.maximum_health_points} | ATK{" "}
+                        {progressionReward.updated_monster_entity.attack_stat} | DEF{" "}
+                        {progressionReward.updated_monster_entity.defense_stat} | SPD{" "}
+                        {progressionReward.updated_monster_entity.speed_stat}
+                      </strong>
+                    </div>
+                  </div>
+
+                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                    {progressionReward.was_opponent_auto_recruited && (
+                      <span
+                        style={{
+                          fontFamily: "var(--font-pixel)",
+                          fontSize: "0.58rem",
+                          backgroundColor: "#dbeafe",
+                          color: "#1e40af",
+                          border: "2px solid #3b82f6",
+                          padding: "4px 8px",
+                          borderRadius: "6px",
+                        }}
+                      >
+                        🎉 Recruited {progressionReward.recruited_opponent_pokemon_name}! (TEAM Unlocked)
+                      </span>
+                    )}
+                    {progressionReward.newly_unlocked_move_names.length > 0 && (
+                      <span
+                        style={{
+                          fontFamily: "var(--font-pixel)",
+                          fontSize: "0.58rem",
+                          backgroundColor: "#fef3c7",
+                          color: "#b45309",
+                          border: "2px solid #f59e0b",
+                          padding: "4px 8px",
+                          borderRadius: "6px",
+                        }}
+                      >
+                        🔓 Move Unlocked: {progressionReward.newly_unlocked_move_names.join(", ")}!
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <GameGuideDialogBox
                 characterName={gameGuideName}
                 highlightedTerm={trainerName}
                 dialogueMessage={
                   battleOutcome === "VICTORY"
-                    ? `Outstanding battle, ${trainerName}! Your ${playerMonster.pokemon_name} completely dominated the arena with pinpoint Scratch attacks. Wild ${opponentMonster.pokemon_name} has fainted! That's 45 EXP earned. You're well on your way to becoming a champion!`
+                    ? `Outstanding battle, ${trainerName}! Your ${playerMonster.pokemon_name} knocked out wild ${opponentMonster.pokemon_name} within the 5-turn clock! ${opponentMonster.pokemon_name} respected your strength and joined your party pool, and ${playerMonster.pokemon_name} earned +45 EXP and a permanent +1% stat boost!`
+                    : battleOutcome === "TURN_LIMIT"
+                    ? `Time's up, ${trainerName}! All 5 turns on the stadium clock have expired and wild ${opponentMonster.pokemon_name} is still standing! In Lesson 7, this triggers the Catch Pokémon Roulette Wheel!`
                     : `Hang in there, ${trainerName}! Every Champion suffers tough setbacks early on. ${playerMonster.pokemon_name} gave it everything! Let's patch up at the Pokémon Center, study our elemental type charts, and jump right back in!`
                 }
                 promptActionHint={
                   battleOutcome === "VICTORY"
                     ? "[ Press Enter to Return to Academy ▸ ]"
-                    : "[ Press Enter to Recover ▸ ]"
+                    : "[ Press Enter to Continue ▸ ]"
                 }
                 onAdvanceDialogue={onExitBattle}
                 characterImagePlacement="right"
@@ -820,7 +1005,7 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
                   variant="default"
                   showArrowPointer="right"
                 >
-                  🔄 Battle Again
+                  🔄 Battle Again (Test TEAM Swap &amp; +1% Stats)
                 </ButtonUI>
               </div>
             </div>
@@ -883,12 +1068,23 @@ export const BattleArenaScreen: React.FC<BattleArenaScreenProps> = ({
                   </ButtonUI>
 
                   <ButtonUI
-                    onClick={() => {}}
+                    onClick={() => setIsTeamSwapModalOpen(true)}
                     variant="default"
-                    disabled={true}
-                    title="Only 1 monster in party (Unlocked in Lesson 6)"
+                    showArrowPointer={canSwapTeamNow ? "right" : undefined}
+                    disabled={!canSwapTeamNow}
+                    title={
+                      totalPartyCount <= 1
+                        ? "Only 1 monster in party — Knock out an opponent to recruit!"
+                        : currentTurnNumber > 1
+                        ? "TEAM swap is only permitted before Turn 1 begins"
+                        : "Swap active monster from your party pool before Turn 1"
+                    }
                   >
-                    TEAM (🔒)
+                    {totalPartyCount <= 1
+                      ? "TEAM (🔒 1/1)"
+                      : currentTurnNumber > 1
+                      ? `TEAM (Turn 1 Only)`
+                      : `TEAM (${totalPartyCount})`}
                   </ButtonUI>
 
                   <ButtonUI

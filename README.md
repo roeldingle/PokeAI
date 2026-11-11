@@ -25,8 +25,8 @@
 | **Lesson 03** | Asynchronous PokéAPI Client & Structured Ingestion | ✅ Completed |
 | **Lesson 04** | ChromaDB Vector Memory, Domain Enrichment & Smart Pokédex | ✅ Completed |
 | **Lesson 05** | Classic GBA Battle Arena & Deterministic Damage Engine | ✅ Completed |
-| **Lesson 06** | 5-Turn Battle Clock, `TEAM` Swap & +1% Stat Progression | ⏳ Up Next |
-| **Lesson 07** | Catch Pokémon Roulette Phase (Turn 5 Limit) | ⏳ Pending |
+| **Lesson 06** | 5-Turn Battle Clock, `TEAM` Swap & +1% Stat Progression | ✅ Completed |
+| **Lesson 07** | Catch Pokémon Roulette Phase (Turn 5 Limit) | ⏳ Up Next |
 | **Lesson 08** | `ASK GUIDE` Battle Whisperer (Dynamic In-Context RAG) | ⏳ Pending |
 | **Lesson 09** | Autonomous Gym Leader AI Agent & Dynamic Threat Calibration | ⏳ Pending |
 | **Lesson 10** | Live Stadium Announcer (SSE Streaming Ticker Tape) | ⏳ Pending |

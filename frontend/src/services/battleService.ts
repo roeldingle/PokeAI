@@ -6,6 +6,8 @@
 import type {
   BattleSessionData,
   BattleTurnResolutionResponse,
+  TeamSwapResponse,
+  TrainerPartyPoolState,
 } from "../types/battle";
 
 // Central API base URL pointing to FastAPI server
@@ -93,4 +95,55 @@ export async function fetchBattleSession(
 
   const jsonResult = await response.json();
   return jsonResult.battle_session;
+}
+
+/**
+ * Executes a Lesson 6 pre-Turn 1 party swap (`TEAM` button).
+ */
+export async function swapActivePartyMonster(
+  battleSessionId: string,
+  targetPokemonId: number
+): Promise<TeamSwapResponse> {
+  const response = await fetch(
+    `${BACKEND_API_BASE_URL}/api/v1/battle/team/swap`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        battle_session_id: battleSessionId,
+        target_pokemon_id: targetPokemonId,
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    const errorPayload = await response.json().catch(() => ({}));
+    throw new Error(
+      errorPayload.detail || `Failed to swap party monster (Status ${response.status})`
+    );
+  }
+
+  return response.json();
+}
+
+/**
+ * Retrieves the trainer's complete party pool and progression stats.
+ */
+export async function fetchTrainerPartyPool(
+  trainerName: string
+): Promise<TrainerPartyPoolState> {
+  const response = await fetch(
+    `${BACKEND_API_BASE_URL}/api/v1/battle/trainer/${encodeURIComponent(trainerName)}/party`
+  );
+
+  if (!response.ok) {
+    const errorPayload = await response.json().catch(() => ({}));
+    throw new Error(
+      errorPayload.detail || `Failed to fetch trainer party pool (Status ${response.status})`
+    );
+  }
+
+  return response.json();
 }

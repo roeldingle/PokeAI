@@ -10,7 +10,13 @@ from src.schemas.battle_schema import (
     BattleTurnResolutionResponse,
     TurnActionRequest,
 )
+from src.schemas.progression_schema import (
+    TeamSwapRequest,
+    TeamSwapResponse,
+    TrainerPartyPoolState,
+)
 from src.services.battle_engine import battle_engine_service
+from src.services.battle_progression_service import battle_progression_service
 
 # Initialize dedicated battle router under /api/v1/battle
 battle_router = APIRouter(
@@ -102,3 +108,57 @@ async def get_battle_session_state(
         "status": "success",
         "battle_session": session_data,
     }
+
+
+@battle_router.post(
+    "/team/swap",
+    response_model=TeamSwapResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Swap active monster from trainer party pool before Turn 1 begins",
+)
+async def swap_active_party_monster(
+    swap_request: TeamSwapRequest,
+) -> TeamSwapResponse:
+    """
+    Executes a Lesson 6 pre-Turn 1 party swap (`TEAM` button).
+    Rejected if Turn 1 has already started or if the trainer only owns 1 monster.
+    """
+    session_data = battle_engine_service.active_battle_sessions.get(
+        swap_request.battle_session_id
+    )
+    if not session_data:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Battle session '{swap_request.battle_session_id}' not found.",
+        )
+
+    try:
+        swap_response = battle_progression_service.execute_pre_turn_team_swap(
+            battle_session=session_data,
+            target_pokemon_id=swap_request.target_pokemon_id,
+        )
+        session_data["party_pool"] = swap_response.party_pool_state.model_dump()
+        return swap_response
+    except ValueError as validation_error:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(validation_error),
+        )
+
+
+@battle_router.get(
+    "/trainer/{trainer_name}/party",
+    response_model=TrainerPartyPoolState,
+    status_code=status.HTTP_200_OK,
+    summary="Retrieve trainer's party pool and monster progression stats",
+)
+async def get_trainer_party_pool(
+    trainer_name: str,
+) -> TrainerPartyPoolState:
+    """
+    Returns the trainer's recruited monster pool, victory counts, +1% stat multipliers,
+    unlocked move slots, and TEAM swap eligibility flag.
+    """
+    return battle_progression_service.get_trainer_party_pool_state(
+        trainer_name=trainer_name
+    )

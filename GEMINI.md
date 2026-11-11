@@ -56,9 +56,9 @@
     - **10 Wins Milestone**: Unlocks **Move Slot 3** (e.g. *Ember* [Fire]) alongside +10% stat boost (`stat_progression_multiplier = 1.10`).
     - **20 Wins Milestone**: Unlocks **Move Slot 4** (e.g. *Flamethrower* [Fire]) alongside +20% stat boost (`stat_progression_multiplier = 1.20`).
   - **Opponent Move Loadout**: Early wild monsters (e.g. Pidgey Lv 5) use 2 basic moves; Gym Leaders enter with 3 or 4 moves scaled to their challenge tier.
-  - **`TEAM` Option**: Swaps active monster from the player's pool before Turn 1 begins. If the pool contains only 1 Pokémon, `TEAM` is visibly disabled.
-  - **5-Turn Battle Rule**: Every battle lasts a maximum of 5 turns (`Turn 1/5` to `Turn 5/5`).
-  - **EXP & +1% Stat Progression**: Winning a battle awards EXP and grants a **+1% incremental stat boost** (`stat_progression_multiplier = 1.0 + (victories_count * 0.01)`) to the active monster's HP, Attack, Defense, and Speed. This dynamically scales threat levels in AI prompts.
+  - **`TEAM` Option (`TeamSwapModal`)**: Swaps active monster from the player's pool before Turn 1 begins (`POST /api/v1/battle/team/swap`). If the pool contains only 1 Pokémon, `TEAM` displays `TEAM (🔒 1/1)` and is disabled; after Turn 1 starts, displays `TEAM (Turn 1 Only)` and is disabled.
+  - **5-Turn Battle Rule & Single-Line Header**: Every battle lasts a maximum of 5 turns (`⏱️ TURN 1 / 5` to `⏱️ TURN 5 / 5`), displayed directly beside the lesson title in a single-line stadium header (`flex-wrap: nowrap`) to preserve vertical viewport space.
+  - **EXP & +1% Stat Progression (`battle_progression_service.py`)**: Winning a battle awards EXP and grants a **+1% incremental stat boost** (`stat_progression_multiplier = 1.0 + (victories_count * 0.01)`) to the active monster's HP, Attack, Defense, and Speed, displayed in the post-battle victory summary banner. This dynamically scales threat levels in AI prompts.
   - **Acquisition Rule 1 (Defeat)**: If the player defeats/KOs the opponent within 5 turns, that Pokémon is automatically added to the player's Pokémon pool.
   - **Acquisition Rule 2 (Catch Roulette Phase)**: If the opponent is NOT defeated by Turn 5, the battle enters the Catch Roulette Phase:
     - **Gold Pokéball**: 90% catch chance
